@@ -743,7 +743,7 @@ function animate() {
 
     // Increase speed over time
     state.speed = 1 + state.time * 0.02;
-    if (state.speed > 3) state.speed = 3;
+    if (state.speed > 7) state.speed = 7;
 
     // Move lizard smoothly between lanes
     const targetX = LANES[state.targetLane + 1];
