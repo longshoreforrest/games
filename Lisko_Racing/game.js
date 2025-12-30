@@ -726,11 +726,11 @@ function handleTouchEnd(e) {
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
             // Horizontal swipe
             if (deltaX > 0) {
-                // Swipe right -> move left (same as A key)
-                state.targetLane = Math.min(1, state.targetLane + 1);
-            } else {
-                // Swipe left -> move right (same as D key)
+                // Swipe right -> move right
                 state.targetLane = Math.max(-1, state.targetLane - 1);
+            } else {
+                // Swipe left -> move left
+                state.targetLane = Math.min(1, state.targetLane + 1);
             }
         }
     }
@@ -739,12 +739,12 @@ function handleTouchEnd(e) {
 // Touch button handlers for mobile
 function moveLeft() {
     if (!state.isRunning) return;
-    state.targetLane = Math.min(1, state.targetLane + 1);
+    state.targetLane = Math.max(-1, state.targetLane - 1);
 }
 
 function moveRight() {
     if (!state.isRunning) return;
-    state.targetLane = Math.max(-1, state.targetLane - 1);
+    state.targetLane = Math.min(1, state.targetLane + 1);
 }
 
 // Add touch event listeners
