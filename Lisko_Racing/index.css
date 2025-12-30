@@ -145,3 +145,93 @@ button:active {
     font-weight: 700;
     font-size: 1.5rem;
 }
+
+/* Mobile Controls */
+#mobile-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.mobile-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.mobile-btn:active {
+    background: rgba(74, 222, 128, 0.5);
+    transform: scale(0.95);
+}
+
+/* Hide mobile controls on desktop */
+@media (hover: hover) and (pointer: fine) {
+    #mobile-controls {
+        display: none;
+    }
+    .mobile-hint {
+        display: none;
+    }
+}
+
+/* Show mobile hint only on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .mobile-hint {
+        display: block !important;
+    }
+    .controls:not(.mobile-hint) {
+        display: none;
+    }
+}
+
+/* Adjust HUD for mobile */
+@media (max-width: 600px) {
+    #hud {
+        top: 10px;
+        left: 10px;
+        gap: 10px;
+    }
+    
+    #hud > div {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .overlay-content {
+        padding: 30px;
+        margin: 20px;
+    }
+    
+    .overlay-content h1 {
+        font-size: 2rem;
+    }
+    
+    .overlay-content p {
+        font-size: 1rem;
+    }
+    
+    button {
+        padding: 14px 35px;
+        font-size: 1rem;
+    }
+}

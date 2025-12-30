@@ -698,6 +698,65 @@ function handleInput(e) {
 
 document.addEventListener('keydown', handleInput);
 
+// ============ MOBILE TOUCH CONTROLS ============
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchStartTime = Date.now();
+}
+
+function handleTouchEnd(e) {
+    if (!state.isRunning) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const deltaTime = Date.now() - touchStartTime;
+
+    // Minimum swipe distance and maximum time for swipe detection
+    const minSwipeDistance = 30;
+    const maxSwipeTime = 300;
+
+    if (deltaTime < maxSwipeTime && Math.abs(deltaX) > minSwipeDistance) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Horizontal swipe
+            if (deltaX > 0) {
+                // Swipe right -> move left (same as A key)
+                state.targetLane = Math.min(1, state.targetLane + 1);
+            } else {
+                // Swipe left -> move right (same as D key)
+                state.targetLane = Math.max(-1, state.targetLane - 1);
+            }
+        }
+    }
+}
+
+// Touch button handlers for mobile
+function moveLeft() {
+    if (!state.isRunning) return;
+    state.targetLane = Math.min(1, state.targetLane + 1);
+}
+
+function moveRight() {
+    if (!state.isRunning) return;
+    state.targetLane = Math.max(-1, state.targetLane - 1);
+}
+
+// Add touch event listeners
+document.addEventListener('touchstart', handleTouchStart, { passive: true });
+document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+// Setup mobile button listeners
+const leftBtn = document.getElementById('mobile-left-btn');
+const rightBtn = document.getElementById('mobile-right-btn');
+if (leftBtn) leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft(); });
+if (rightBtn) rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveRight(); });
+
 // ============ GAME LOOP ============
 function updateHUD() {
     document.getElementById('score-value').textContent = state.score;
