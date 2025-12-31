@@ -207,11 +207,15 @@
         /* Actions Panel */
         .actions-panel {
             height: 30%;
+            min-height: 180px;
+            /* Ensure space */
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 40, 1) 100%);
             display: flex;
             flex-direction: column;
             padding: 15px;
             gap: 10px;
+            overflow-y: auto;
+            /* Enable scrolling for buttons */
         }
 
         .actions-title {
@@ -402,12 +406,41 @@
         }
 
         @media (max-width: 768px) {
+            .actions-panel {
+                height: 45%;
+                /* More space for buttons on mobile */
+                padding: 10px;
+            }
+
             .actions-grid {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(3, 1fr);
+                /* 3 columns to fit all buttons visibly */
+                gap: 5px;
+            }
+
+            .action-btn {
+                padding: 5px;
+            }
+
+            .action-btn .icon {
+                font-size: 1.4rem;
+            }
+
+            .action-btn .label {
+                font-size: 0.65rem;
             }
 
             .room-btn span.label {
                 display: none;
+            }
+
+            .room-nav {
+                padding: 5px 10px;
+                bottom: 5px;
+            }
+
+            .room-btn {
+                padding: 5px 10px;
             }
         }
     </style>
@@ -607,7 +640,7 @@
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.audioCtx = new AudioContext();
                     this.gainNode = this.audioCtx.createGain();
-                    this.gainNode.gain.value = 0.1; // Low volume background music
+                    this.gainNode.gain.value = 0.3; // Louder volume (req: vähän kovemmalle)
                     this.gainNode.connect(this.audioCtx.destination);
                 } catch (e) {
                     console.error('Web Audio API not supported');
@@ -615,10 +648,30 @@
 
                 // Button handler
                 const btn = document.getElementById('music-btn');
+
                 btn.addEventListener('click', () => {
                     this.toggle();
                     btn.textContent = this.isPlaying ? '🔊' : '🔇';
                 });
+
+                // Auto-start on first interaction (browser policy workaround)
+                const enableAudio = () => {
+                    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                    if (!this.isPlaying) {
+                        this.isPlaying = true; // Default ON
+                        this.nextNoteTime = this.audioCtx.currentTime + 0.1;
+                        this.scheduler();
+                        btn.textContent = '🔊';
+                    }
+                    document.removeEventListener('click', enableAudio);
+                    document.removeEventListener('touchstart', enableAudio);
+                };
+
+                // Listen for first user gesture
+                document.addEventListener('click', enableAudio);
+                document.addEventListener('touchstart', enableAudio);
             },
 
             toggle: function () {

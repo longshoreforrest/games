@@ -1,0 +1,3 @@
+Kännykällä katsottuna kaikki toiminnot eivät näy. Ruudulla näkyy vain ruoki, vettä, rapsuta ja leiki...
+
+Laita myös musiikit vakiona päälle ja ääni vähän kovemmalle
