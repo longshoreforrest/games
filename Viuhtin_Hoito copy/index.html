@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Viuhtin Hoito - Hoida söpöä blue merle collie -koiraa! Ruoki, pese, ulkoiluta ja leiki Viuhtin kanssa.">
+    <title>Viuhtin Hoito - Koiranhoitopeli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="minigames.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <h1>🐕 Viuhtin Hoito</h1>
+            <p class="subtitle">Hoida söpöä blue merle collieta!</p>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-main">
+            <!-- Room Navigation -->
+            <nav class="room-navigation">
+                <button class="room-btn active" data-room="living" id="room-living">
+                    <span class="room-icon">🏠</span>
+                    <span class="room-name">Olohuone</span>
+                </button>
+                <button class="room-btn" data-room="kitchen" id="room-kitchen">
+                    <span class="room-icon">🍳</span>
+                    <span class="room-name">Keittiö</span>
+                </button>
+                <button class="room-btn" data-room="bathroom" id="room-bathroom">
+                    <span class="room-icon">🛁</span>
+                    <span class="room-name">Kylpyhuone</span>
+                </button>
+                <button class="room-btn" data-room="bedroom" id="room-bedroom">
+                    <span class="room-icon">🛏️</span>
+                    <span class="room-name">Makuuhuone</span>
+                </button>
+                <button class="room-btn" data-room="yard" id="room-yard">
+                    <span class="room-icon">🌳</span>
+                    <span class="room-name">Piha</span>
+                </button>
+            </nav>
+
+            <!-- Viuhti Display Area with Room Background -->
+            <section class="viuhti-section" id="viuhti-section">
+                <div class="room-background" id="room-background">
+                    <div class="room-decor" id="room-decor"></div>
+                </div>
+                <div class="viuhti-container">
+                    <img id="viuhti-image" src="assets/viuhti_happy.png" alt="Viuhti koira" class="viuhti-image">
+                    <div id="viuhti-speech" class="speech-bubble hidden">
+                        <p id="speech-text"></p>
+                    </div>
+                    <div id="action-animation" class="action-animation hidden"></div>
+                    <!-- Poop on floor container -->
+                    <div id="poop-floor" class="poop-floor-overlay"></div>
+                </div>
+                <p id="viuhti-status" class="viuhti-status">Viuhti on iloinen! 🐾</p>
+                <p id="room-indicator" class="room-indicator">📍 Olohuone</p>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon">🍖</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Nälkä</span>
+                        <div class="stat-bar">
+                            <div id="hunger-bar" class="stat-fill hunger" style="width: 100%"></div>
+                        </div>
+                        <span id="hunger-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💤</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Energia</span>
+                        <div class="stat-bar">
+                            <div id="energy-bar" class="stat-fill energy" style="width: 100%"></div>
+                        </div>
+                        <span id="energy-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✨</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Puhtaus</span>
+                        <div class="stat-bar">
+                            <div id="cleanliness-bar" class="stat-fill cleanliness" style="width: 100%"></div>
+                        </div>
+                        <span id="cleanliness-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❤️</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Onnellisuus</span>
+                        <div class="stat-bar">
+                            <div id="happiness-bar" class="stat-fill happiness" style="width: 100%"></div>
+                        </div>
+                        <span id="happiness-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🐾</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Kynnet</span>
+                        <div class="stat-bar">
+                            <div id="nails-bar" class="stat-fill nails" style="width: 100%"></div>
+                        </div>
+                        <span id="nails-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏃</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Liikunta</span>
+                        <div class="stat-bar">
+                            <div id="exercise-bar" class="stat-fill exercise" style="width: 100%"></div>
+                        </div>
+                        <span id="exercise-value" class="stat-value">100%</span>
+                    </div>
+                </div>
+                <!-- Vessahätä-mittari -->
+                <div class="stat-card">
+                    <div class="stat-icon">🚽</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Vessahätä</span>
+                        <div class="stat-bar">
+                            <div id="bladder-bar" class="stat-fill bladder" style="width: 0%"></div>
+                        </div>
+                        <span id="bladder-value" class="stat-value">0%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions Section -->
+            <section class="actions-section">
+                <h2>Hoitotoimenpiteet</h2>
+                <div class="actions-grid">
+                    <button id="btn-feed" class="action-btn feed-btn" title="Ruoki Viuhtia">
+                        <span class="btn-icon">🍖</span>
+                        <span class="btn-text">Ruoki</span>
+                    </button>
+                    <button id="btn-water" class="action-btn water-btn" title="Anna vettä">
+                        <span class="btn-icon">💧</span>
+                        <span class="btn-text">Vettä</span>
+                    </button>
+                    <button id="btn-sleep" class="action-btn sleep-btn" title="Laita nukkumaan">
+                        <span class="btn-icon">😴</span>
+                        <span class="btn-text">Nukuta</span>
+                    </button>
+                    <button id="btn-wash" class="action-btn wash-btn" title="Pese Viuhti">
+                        <span class="btn-icon">🛁</span>
+                        <span class="btn-text">Pese</span>
+                    </button>
+                    <button id="btn-brush" class="action-btn brush-btn" title="Harjaa turkki">
+                        <span class="btn-icon">🪮</span>
+                        <span class="btn-text">Harjaa</span>
+                    </button>
+                    <button id="btn-walk" class="action-btn walk-btn" title="Ulkoiluta">
+                        <span class="btn-icon">🚶</span>
+                        <span class="btn-text">Ulkoiluta</span>
+                    </button>
+                    <button id="btn-play" class="action-btn play-btn" title="Leiki Viuhtin kanssa">
+                        <span class="btn-icon">🎾</span>
+                        <span class="btn-text">Leiki</span>
+                    </button>
+                    <button id="btn-pet" class="action-btn pet-btn" title="Rapsuta Viuhtia">
+                        <span class="btn-icon">🤲</span>
+                        <span class="btn-text">Rapsuta</span>
+                    </button>
+                    <button id="btn-nails" class="action-btn nails-btn" title="Leikkaa kynnet">
+                        <span class="btn-icon">✂️</span>
+                        <span class="btn-text">Kynnet</span>
+                    </button>
+                    <button id="btn-treat" class="action-btn treat-btn" title="Anna herkku">
+                        <span class="btn-icon">🦴</span>
+                        <span class="btn-text">Herkku</span>
+                    </button>
+                    <button id="btn-vet" class="action-btn vet-btn" title="Vie eläinlääkäriin">
+                        <span class="btn-icon">🏥</span>
+                        <span class="btn-text">Lääkäri</span>
+                    </button>
+                    <button id="btn-train" class="action-btn train-btn" title="Kouluta temppuja">
+                        <span class="btn-icon">🎓</span>
+                        <span class="btn-text">Kouluta</span>
+                    </button>
+                    <!-- Kakkasiivous-nappi (näkyy vain kun on kakkaa) -->
+                    <button id="btn-cleanup" class="action-btn cleanup-btn hidden" title="Siivoa kakat">
+                        <span class="btn-icon">🧹</span>
+                        <span class="btn-text">Siivoa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Time & Day Info -->
+            <section class="time-section">
+                <div class="time-display">
+                    <span id="game-time" class="game-time">08:00</span>
+                    <span id="game-day" class="game-day">Päivä 1</span>
+                </div>
+                <div class="speed-controls">
+                    <button id="btn-pause" class="speed-btn" title="Tauko">⏸️</button>
+                    <button id="btn-normal" class="speed-btn active" title="Normaali nopeus">▶️</button>
+                    <button id="btn-fast" class="speed-btn" title="Nopea">⏩</button>
+                </div>
+            </section>
+
+            <!-- Activity Log -->
+            <section class="log-section">
+                <h3>📋 Tapahtumaloki</h3>
+                <div id="activity-log" class="activity-log">
+                    <p class="log-entry">🎮 Peli alkaa! Tervetuloa hoitamaan Viuhtia!</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="game-footer">
+            <p>🐕 Viuhtin Hoito - Tehty rakkaudella Viuhtille ❤️</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification hidden">
+        <p id="notification-text"></p>
+    </div>
+
+    <!-- Music Control Button -->
+    <div class="music-control">
+        <button id="btn-music" class="music-btn" title="Musiikki päälle/pois">
+            🔇
+        </button>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="music.js"></script>
+    <script src="minigames.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
