@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bussipeli - Aja Bussilla!</title>
+    <meta name="description" content="Hauska 3D bussipeli jossa voit ajaa punaisella bussilla ja pysähtyä bussipysäkeillä!">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 3D-näkymä tulee tähän -->
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- Ohjausnäyttö -->
+        <div id="controls-overlay">
+            <!-- Ratti vasemmalla -->
+            <div id="steering-container">
+                <div id="steering-wheel">
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-spoke"></div>
+                    <div class="wheel-center">🚌</div>
+                </div>
+            </div>
+            
+            <!-- Kaasu/Jarru oikealla -->
+            <div id="pedals-container">
+                <button id="forward-btn" class="pedal-btn">
+                    <span class="pedal-icon">▲</span>
+                    <span class="pedal-label">KAASU</span>
+                </button>
+                <button id="backward-btn" class="pedal-btn">
+                    <span class="pedal-icon">▼</span>
+                    <span class="pedal-label">PERUUTA</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Infopaneeli -->
+        <div id="info-panel">
+            <div id="speed-display">
+                <span class="info-label">Nopeus</span>
+                <span id="speed-value">0</span>
+                <span class="info-unit">km/h</span>
+            </div>
+        </div>
+        
+        <!-- Ohjeet -->
+        <div id="instructions">
+            <h3>🚌 Bussipeli</h3>
+            <p>Käytä rattia kääntääksesi • Paina kaasua ajaaksesi</p>
+        </div>
+    </div>
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
