@@ -10,6 +10,7 @@ import { Horse } from './Horse.js';
 import { Stable } from './Stable.js';
 import { Player } from './Player.js';
 import { UI } from '../utils/UI.js';
+import { MobileControls } from '../utils/MobileControls.js';
 
 export class Game {
     constructor() {
@@ -90,6 +91,9 @@ export class Game {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Setup mobile controls
+        this.mobileControls = new MobileControls(this);
 
         // Start animation loop
         this.animate();

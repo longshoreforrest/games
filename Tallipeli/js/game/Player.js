@@ -452,5 +452,16 @@ export class Player {
         const time = Date.now() * 0.001;
         this.mesh.position.y = this.mesh.position.y + Math.sin(time * 2) * 0.002;
     }
+
+    rotate(angle) {
+        // Rotate direction vector
+        const axis = new THREE.Vector3(0, 1, 0);
+        this.direction.applyAxisAngle(axis, angle);
+
+        // Also rotate mesh if visible
+        if (this.mesh && this.mesh.visible) {
+            this.mesh.rotation.y += angle;
+        }
+    }
 }
 

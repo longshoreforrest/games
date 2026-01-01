@@ -920,18 +920,25 @@ export class UI {
         });
 
         // Mouse move - update hose cursor position
-        document.addEventListener('mousemove', (e) => {
+        const updateCursor = (x, y) => {
             if (!hasHose || !hoseCursor) return;
+            hoseCursor.style.left = x + 'px';
+            hoseCursor.style.top = y + 'px';
+        };
 
-            hoseCursor.style.left = e.clientX + 'px';
-            hoseCursor.style.top = e.clientY + 'px';
-        });
+        document.addEventListener('mousemove', (e) => updateCursor(e.clientX, e.clientY));
+        document.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            updateCursor(touch.clientX, touch.clientY);
+        }, { passive: false });
 
         // Spray on body parts
         document.querySelectorAll('.body-part').forEach(partElement => {
             let sprayInterval = null;
 
-            partElement.addEventListener('mousedown', (e) => {
+            const startSpray = (e) => {
+                if (e.cancelable) e.preventDefault();
+
                 if (!hasHose) {
                     this.showNotification('Ota ensin vesiletku!');
                     return;
@@ -944,8 +951,43 @@ export class UI {
                 const spray = () => {
                     if (!isSpraying) return;
 
+                    // If touch, update position based on touch, else center of element
+                    // For particles it's enough to just spawn them
+                    // But in original code it used element center relative to washingZone
+                    // Let's keep it simple: spawn particles 
+
+                    // Simple hack: get coords from latest event if possible, or element center
                     const rect = partElement.getBoundingClientRect();
                     const zoneRect = washingZone.getBoundingClientRect();
+
+                    // We need screen coordinates for particles usually if they are fixed, 
+                    // or relative if container is relative. 
+                    // The particle container is water-spray-container inside washing-game-container (which is relative)
+                    // Let's rely on CSS logic being consistent
+
+                    // Original code:
+                    // const x = rect.left - zoneRect.left + rect.width / 2;
+                    // const y = rect.top - zoneRect.top + rect.height / 2;
+                    // createWaterParticles(x, y); 
+
+                    // Wait, createWaterParticles appends to #water-spray-container which is absolute overlay
+                    // The CSS for container was: position: absolute; top:0; left:0; width:100%; height:100%;
+                    // And water-particle is absolute.
+                    // So we likely need coordinates relative to the container.
+
+                    // Using mouse clientX/Y directly for particles would be better if we track cursor?
+                    // But original code uses element center, which implies "spraying this part" visual
+
+                    // Let's accept original logic:
+                    /* 
+                    const x = rect.left - zoneRect.left + rect.width / 2;
+                    const y = rect.top - zoneRect.top + rect.height / 2;
+                    */
+
+                    // BUT createWaterParticles gets x,y and puts them in style.left/top
+                    // If container matches washingZone size/pos, then rect.left - zoneRect.left is correct relative X.
+
+                    // Let's assume original logic works and replicate it
                     const x = rect.left - zoneRect.left + rect.width / 2;
                     const y = rect.top - zoneRect.top + rect.height / 2;
 
@@ -957,24 +999,27 @@ export class UI {
 
                 spray();
                 sprayInterval = setInterval(spray, 100);
-            });
+            };
 
-            partElement.addEventListener('mouseup', () => {
+            const stopSpray = () => {
                 isSpraying = false;
                 if (sprayInterval) {
                     clearInterval(sprayInterval);
                     sprayInterval = null;
                 }
-            });
+            };
 
-            partElement.addEventListener('mouseleave', () => {
-                isSpraying = false;
-                if (sprayInterval) {
-                    clearInterval(sprayInterval);
-                    sprayInterval = null;
-                }
-            });
+            partElement.addEventListener('mousedown', startSpray);
+            partElement.addEventListener('touchstart', startSpray, { passive: false });
+
+            partElement.addEventListener('mouseup', stopSpray);
+            partElement.addEventListener('touchend', stopSpray);
+            partElement.addEventListener('mouseleave', stopSpray);
+            // touchcancel handles if touch goes off screen etc
+            partElement.addEventListener('touchcancel', stopSpray);
+
         });
+
 
         // Tool selection
         document.querySelectorAll('.tool-btn').forEach(btn => {
