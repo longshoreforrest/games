@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="3D Tallipeli - Realistinen hevostellisimulaattori, jossa hoidat hevosia ja ratsastat eri lajeissa">
+    <title>Tallipeli - Hevostellisimulaattori 🐴</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="horse-loader">
+                <div class="horse-silhouette"></div>
+            </div>
+            <h1>Tallipeli</h1>
+            <p class="loading-text">Ladataan tallia...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu hidden">
+        <div class="menu-background"></div>
+        <div class="menu-content">
+            <div class="logo-container">
+                <h1 class="game-title">
+                    <span class="title-icon">🐴</span>
+                    Tallipeli
+                </h1>
+                <p class="subtitle">Hevostellisimulaattori</p>
+            </div>
+            <div class="menu-buttons">
+                <button id="btn-new-game" class="menu-btn primary">
+                    <span class="btn-icon">🎮</span>
+                    Uusi Peli
+                </button>
+                <button id="btn-continue" class="menu-btn" disabled>
+                    <span class="btn-icon">▶️</span>
+                    Jatka Peliä
+                </button>
+                <button id="btn-settings" class="menu-btn">
+                    <span class="btn-icon">⚙️</span>
+                    Asetukset
+                </button>
+                <button id="btn-help" class="menu-btn">
+                    <span class="btn-icon">❓</span>
+                    Ohjeet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game UI -->
+    <div id="game-ui" class="game-ui hidden">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="time-weather">
+                <div class="game-time">
+                    <span class="time-icon">🕐</span>
+                    <span id="game-time">08:00</span>
+                </div>
+                <div class="weather">
+                    <span id="weather-icon">☀️</span>
+                    <span id="temperature">15°C</span>
+                </div>
+            </div>
+            <div class="currency">
+                <span class="currency-icon">💰</span>
+                <span id="player-money">5000</span> €
+            </div>
+            <button id="btn-pause" class="icon-btn">⏸️</button>
+        </div>
+
+        <!-- Horse Stats Panel (shown when horse is selected) -->
+        <div id="horse-stats-panel" class="stats-panel hidden">
+            <div class="panel-header">
+                <h3 id="horse-name">Hevosen nimi</h3>
+                <button class="close-btn" id="close-stats">✕</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-icon">🍎</span>
+                    <span class="stat-label">Nälkä</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-hunger" style="width: 80%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💧</span>
+                    <span class="stat-label">Jano</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-thirst" style="width: 70%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">✨</span>
+                    <span class="stat-label">Puhtaus</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-cleanliness" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">😊</span>
+                    <span class="stat-label">Onnellisuus</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-happiness" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⚡</span>
+                    <span class="stat-label">Energia</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-energy" style="width: 90%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🔧</span>
+                    <span class="stat-label">Kaviot</span>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="stat-hooves" style="width: 75%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Menu -->
+        <div id="action-menu" class="action-menu hidden">
+            <div class="action-grid">
+                <button class="action-btn" data-action="brush">
+                    <span class="action-icon">🪥</span>
+                    <span class="action-label">Harjaa</span>
+                </button>
+                <button class="action-btn" data-action="feed">
+                    <span class="action-icon">🥕</span>
+                    <span class="action-label">Ruoki</span>
+                </button>
+                <button class="action-btn" data-action="wash">
+                    <span class="action-icon">🚿</span>
+                    <span class="action-label">Pese</span>
+                </button>
+                <button class="action-btn" data-action="shoe">
+                    <span class="action-icon">🧲</span>
+                    <span class="action-label">Kengitä</span>
+                </button>
+                <button class="action-btn" data-action="clean">
+                    <span class="action-icon">🧹</span>
+                    <span class="action-label">Siivoa</span>
+                </button>
+                <button class="action-btn" data-action="paddock">
+                    <span class="action-icon">🌳</span>
+                    <span class="action-label">Tarhaan</span>
+                </button>
+                <button class="action-btn" data-action="swim">
+                    <span class="action-icon">🏊</span>
+                    <span class="action-label">Uita</span>
+                </button>
+                <button class="action-btn" data-action="ride">
+                    <span class="action-icon">🏇</span>
+                    <span class="action-label">Ratsasta</span>
+                </button>
+                <button class="action-btn" data-action="halter">
+                    <span class="action-icon">🐴</span>
+                    <span class="action-label">Riimu</span>
+                </button>
+                <button class="action-btn" data-action="blanket">
+                    <span class="action-icon">🧥</span>
+                    <span class="action-label">Loimi</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Riding Menu -->
+        <div id="riding-menu" class="riding-menu hidden">
+            <h3>Valitse ratsastustyyli</h3>
+            <div class="riding-options">
+                <button class="riding-btn" data-riding="jumping">
+                    <div class="riding-icon">🏆</div>
+                    <div class="riding-info">
+                        <span class="riding-name">Esteratsastus</span>
+                        <span class="riding-desc">Hyppää esteiden yli</span>
+                    </div>
+                </button>
+                <button class="riding-btn" data-riding="dressage">
+                    <div class="riding-icon">🎭</div>
+                    <div class="riding-info">
+                        <span class="riding-name">Kouluratsastus</span>
+                        <span class="riding-desc">Suorita kauniita liikkeitä</span>
+                    </div>
+                </button>
+                <button class="riding-btn" data-riding="western">
+                    <div class="riding-icon">🤠</div>
+                    <div class="riding-info">
+                        <span class="riding-name">Lännenratsastus</span>
+                        <span class="riding-desc">Western-tyylinen ratsastus</span>
+                    </div>
+                </button>
+                <button class="riding-btn" data-riding="trail">
+                    <div class="riding-icon">🌲</div>
+                    <div class="riding-info">
+                        <span class="riding-name">Maastoratsastus</span>
+                        <span class="riding-desc">Tutustu luontoon</span>
+                    </div>
+                </button>
+            </div>
+            <button class="back-btn" id="riding-back">← Takaisin</button>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="bottom-controls">
+            <div class="control-hint">
+                <span>WASD</span> Liiku
+                <span>Hiiri</span> Katso
+                <span>E</span> Interaktio
+                <span>ESC</span> Valikko
+            </div>
+        </div>
+
+        <!-- Minimap -->
+        <div class="minimap">
+            <canvas id="minimap-canvas" width="150" height="150"></canvas>
+        </div>
+    </div>
+
+    <!-- Activity Overlay -->
+    <div id="activity-overlay" class="activity-overlay hidden">
+        <div class="activity-content">
+            <div class="activity-header">
+                <h2 id="activity-title">Aktiviteetti</h2>
+                <button class="close-btn" id="close-activity">✕</button>
+            </div>
+            <div id="activity-container" class="activity-container">
+                <!-- Activity specific content will be injected here -->
+            </div>
+            <div class="activity-progress">
+                <div class="activity-progress-bar">
+                    <div class="activity-progress-fill" id="activity-progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
+
+    <!-- Scripts -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

@@ -673,18 +673,19 @@ function updateWorld() {
             resetBusStopPassengers(stop);
         }
 
-        // Tarkista ollaanko pysäkillä
-        const distToStop = Math.abs(stop.position.z);
-        const isBusNearStop = distToStop < 12 && Math.abs(bus.position.x - 8) < 6;
+        // Pysäkki on x=12, tarkista etäisyys
+        const distZ = Math.abs(stop.position.z);  // Z-etäisyys
 
-        if (isBusNearStop && stop.userData.hasPassengers) {
-            // Jos nopeus on matala -> matkustajat nousevat kyytiin
-            if (Math.abs(speed) < 2) {
+        if (stop.userData.hasPassengers) {
+            // MATKUSTAJAT NOUSEVAT: pysäkki on lähellä JA pysähdytään
+            // - Z-etäisyys < 20 (iso alue!)
+            // - Nopeus < 5 (ei tarvitse olla täysin paikallaan)
+            if (distZ < 20 && Math.abs(speed) < 5) {
                 isAtBusStop = true;
                 boardingTimer++;
 
-                // Matkustajat nousevat kun on pysähdytty 1 sekunti
-                if (boardingTimer > 60) {
+                // Matkustajat nousevat heti kun timer = 20 (~0.3 sek)
+                if (boardingTimer > 20) {
                     const boarding = stop.userData.waitingPassengers || 0;
                     if (boarding > 0) {
                         passengers += boarding;
@@ -707,12 +708,16 @@ function updateWorld() {
                     boardingTimer = 0;
                 }
             }
-            // Jos nopeus on KORKEA -> matkustajat kuolevat! 💀
-            else if (Math.abs(speed) > 10) {
+
+            // MATKUSTAJAT KUOLEVAT: bussi ajaa suoraan pysäkin päälle kovaa
+            // - Z-etäisyys < 8 (lähellä)
+            // - Bussi on oikeassa reunassa (x > 8)
+            // - Nopeus > 10 (kovaa)
+            else if (distZ < 8 && bus.position.x > 8 && Math.abs(speed) > 10) {
                 const killed = stop.userData.waitingPassengers || 0;
                 if (killed > 0) {
                     // Miinuspisteet
-                    passengers -= killed * 2;  // Kaksinkertainen rangaistus
+                    passengers -= killed * 2;
                     if (passengers < 0) passengers = 0;
 
                     stop.userData.hasPassengers = false;
@@ -733,6 +738,8 @@ function updateWorld() {
                 }
             }
         }
+
+
     });
 
     if (!isAtBusStop) {
