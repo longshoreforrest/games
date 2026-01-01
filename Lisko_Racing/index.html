@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="fi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lisko Racing 🦎</title>
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
-        
+
         <!-- HUD -->
         <div id="hud">
             <div id="score">🪰 Kärpäset: <span id="score-value">0</span></div>
             <div id="speed">⚡ Nopeus: <span id="speed-value">1.0</span>x</div>
         </div>
-        
+
         <!-- Start Screen -->
         <div id="start-screen" class="overlay">
             <div class="overlay-content">
@@ -23,27 +25,56 @@
                 <p>Väistele esteitä ja kerää kärpäsiä!</p>
                 <p class="controls">Ohjaus: ← → tai A D</p>
                 <p class="controls mobile-hint">📱 Pyyhkäise tai käytä nappeja</p>
+
+                <div id="player-name-section">
+                    <label for="player-name">Pelaajan nimi:</label>
+                    <input type="text" id="player-name" maxlength="15" placeholder="Nimesi">
+                </div>
+
+                <div id="difficulty-selection">
+                    <p>Valitse vaikeustaso:</p>
+                    <div class="difficulty-buttons">
+                        <button class="diff-btn" data-diff="easy">Helppo 🟢</button>
+                        <button class="diff-btn selected" data-diff="normal">Normaali 🟡</button>
+                        <button class="diff-btn" data-diff="hard">Vaikea 🔴</button>
+                        <button class="diff-btn" data-diff="super">SUPER 🔥</button>
+                    </div>
+                </div>
+
                 <button id="start-btn">ALOITA PELI</button>
+
+                <div id="leaderboard-section">
+                    <h2>🏆 TOP 10 PELAAJAT</h2>
+                    <div id="leaderboard-list">
+                        <p class="loading">Ladataan...</p>
+                    </div>
+                </div>
             </div>
         </div>
-        
+
         <!-- Mobile Controls -->
         <div id="mobile-controls">
             <button id="mobile-left-btn" class="mobile-btn">◀</button>
             <button id="mobile-right-btn" class="mobile-btn">▶</button>
         </div>
-        
+
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="overlay hidden">
             <div class="overlay-content">
                 <h1>💥 PELI PÄÄTTYI!</h1>
                 <p>Keräsit <span id="final-score">0</span> kärpästä!</p>
+                <p id="rank-message"></p>
+                <div id="game-over-leaderboard">
+                    <h3>🏆 TOP 10</h3>
+                    <div id="game-over-leaderboard-list"></div>
+                </div>
                 <button id="restart-btn">PELAA UUDELLEEN</button>
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="game.js"></script>
 </body>
+
 </html>
