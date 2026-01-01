@@ -31,13 +31,95 @@ export class MobileControls {
         if (!('ontouchstart' in window) && navigator.maxTouchPoints === 0) return;
 
         console.log("Initializing Mobile Controls");
-        this.createJoystickElements();
-        this.addEventListeners();
         this.addTouchClass();
+        this.createJoystickElements();
+        this.createActionButtons(); // Lisätään toimintnapit
+        this.hidePCInstructions();  // Piilotetaan PC-ohjeet
+        this.addEventListeners();
     }
 
-    addTouchClass() {
-        document.body.classList.add('touch-device');
+    hidePCInstructions() {
+        // Hide standard PC control hints
+        const hints = document.querySelector('.bottom-controls');
+        if (hints) hints.style.display = 'none';
+
+        // Show mobile hint
+        const mobileHint = document.createElement('div');
+        mobileHint.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        `;
+        mobileHint.innerText = "Vasen: Liiku | Oikea: Käänny";
+        document.getElementById('game-ui').appendChild(mobileHint);
+    }
+
+    createActionButtons() {
+        // Create interaction button (E key substitute)
+        const actionBtn = document.createElement('button');
+        actionBtn.id = 'mobile-action-btn';
+        actionBtn.innerHTML = '🖐️'; // Hand icon for interaction
+        actionBtn.style.cssText = `
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            font-size: 40px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        `;
+
+        // Visual feedback
+        actionBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            actionBtn.style.background = 'rgba(255, 255, 255, 0.6)';
+            actionBtn.style.transform = 'scale(0.95)';
+            // Trigger interaction
+            this.triggerInteraction();
+        }, { passive: false });
+
+        actionBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            actionBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+            actionBtn.style.transform = 'scale(1)';
+        });
+
+        document.getElementById('game-ui').appendChild(actionBtn);
+    }
+
+    triggerInteraction() {
+        // Simulate 'E' key press logic
+        if (this.game.player) {
+            // Find nearest object manually since 'E' listener is elsewhere
+            const nearest = this.game.player.getNearestInteractable();
+            if (nearest && this.game.ui) {
+                // Call UI handler directly as if E was pressed
+                this.game.ui.handleInteraction(nearest);
+
+                // Visual feedback for successful interaction
+                const btn = document.getElementById('mobile-action-btn');
+                if (btn) btn.style.borderColor = '#4CAF50';
+                setTimeout(() => { if (btn) btn.style.borderColor = 'rgba(255, 255, 255, 0.6)'; }, 300);
+            }
+        }
     }
 
     createJoystickElements() {
@@ -46,12 +128,14 @@ export class MobileControls {
         zone.id = 'joystick-zone';
         zone.style.cssText = `
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 150px;
-            height: 150px;
+            bottom: 40px;
+            left: 40px;
+            width: 140px;
+            height: 140px;
             z-index: 1000;
             touch-action: none;
+            background: rgba(0, 0, 0, 0.1); 
+            border-radius: 50%;
         `;
 
         // Joystick Base
@@ -61,31 +145,50 @@ export class MobileControls {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
+            width: 100%;
+            height: 100%;
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             pointer-events: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         `;
 
-        // Joystick Stick
+        // Joystick Stick - More visible
         const stick = document.createElement('div');
         stick.style.cssText = `
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.8);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
             border-radius: 50%;
             pointer-events: none;
             transition: transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        `;
+
+        // Add label "LIIKU"
+        const label = document.createElement('div');
+        label.innerText = "LIIKU";
+        label.style.cssText = `
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            font-weight: bold;
+            font-family: sans-serif;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
         `;
 
         zone.appendChild(base);
         zone.appendChild(stick);
+        zone.appendChild(label);
         document.getElementById('game-ui').appendChild(zone);
 
         this.joystick.base = base;
