@@ -38,6 +38,11 @@ export class MobileControls {
         this.addEventListeners();
     }
 
+    addTouchClass() {
+        // Add touch-device class to body for CSS styling
+        document.body.classList.add('touch-device');
+    }
+
     hidePCInstructions() {
         // Hide standard PC control hints
         const hints = document.querySelector('.bottom-controls');
