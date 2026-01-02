@@ -326,25 +326,66 @@ const FIREBASE_DB_URL = 'https://lisko-racing-default-rtdb.europe-west1.firebase
 
 // Local storage keys for caching
 const LEADERBOARD_CACHE_KEY = 'lisko_racing_leaderboard_cache';
+const OLD_LEADERBOARD_KEY = 'lisko_racing_leaderboard'; // Old key to migrate from
 const PLAYER_NAME_KEY = 'lisko_racing_player_name';
 let currentPlayerName = localStorage.getItem(PLAYER_NAME_KEY) || '';
 let leaderboardData = [];
 let isLoadingLeaderboard = false;
 
+// Migrate old local leaderboard data to Firebase (one-time)
+async function migrateOldLeaderboard() {
+    const migrationKey = 'lisko_racing_migrated_v1';
+    if (localStorage.getItem(migrationKey)) return; // Already migrated
+
+    try {
+        const oldData = localStorage.getItem(OLD_LEADERBOARD_KEY);
+        if (oldData) {
+            const entries = JSON.parse(oldData);
+            console.log(`Migrating ${entries.length} old scores to Firebase...`);
+
+            // Upload each old score to Firebase
+            for (const entry of entries) {
+                if (entry.name && entry.score) {
+                    await fetch(`${FIREBASE_DB_URL}/leaderboard.json`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: entry.name,
+                            score: entry.score,
+                            date: entry.date || new Date().toISOString()
+                        })
+                    });
+                }
+            }
+            console.log('Migration complete!');
+        }
+
+        // Mark as migrated and clear old data
+        localStorage.setItem(migrationKey, 'true');
+        localStorage.removeItem(OLD_LEADERBOARD_KEY);
+        localStorage.removeItem(LEADERBOARD_CACHE_KEY); // Clear cache to force fresh load
+    } catch (e) {
+        console.log('Migration error:', e);
+    }
+}
+
 // Load leaderboard from Firebase (with localStorage cache as fallback)
 async function loadLeaderboard() {
-    // First, load from cache for instant display
-    try {
-        const cached = localStorage.getItem(LEADERBOARD_CACHE_KEY);
-        if (cached) {
+    // First, try to migrate old data (one-time)
+    await migrateOldLeaderboard();
+
+    // Show loading state initially if no cache
+    const cached = localStorage.getItem(LEADERBOARD_CACHE_KEY);
+    if (cached) {
+        try {
             leaderboardData = JSON.parse(cached);
             renderLeaderboard('leaderboard-list');
+        } catch (e) {
+            console.log('Could not parse cached leaderboard:', e);
         }
-    } catch (e) {
-        console.log('Could not load cached leaderboard:', e);
     }
 
-    // Then fetch from Firebase
+    // Fetch from Firebase (always, to get latest data)
     if (isLoadingLeaderboard) return leaderboardData;
     isLoadingLeaderboard = true;
 
@@ -357,9 +398,16 @@ async function loadLeaderboard() {
                 leaderboardData = Object.values(data);
                 // Sort by score (highest first)
                 leaderboardData.sort((a, b) => b.score - a.score);
+                // Keep only top 100
+                leaderboardData = leaderboardData.slice(0, 100);
                 // Cache locally
                 localStorage.setItem(LEADERBOARD_CACHE_KEY, JSON.stringify(leaderboardData));
                 // Update display
+                renderLeaderboard('leaderboard-list');
+                console.log(`Loaded ${leaderboardData.length} scores from Firebase`);
+            } else {
+                // No data in Firebase yet
+                leaderboardData = [];
                 renderLeaderboard('leaderboard-list');
             }
         }
