@@ -59,7 +59,20 @@ const TRANSLATIONS = {
         enterYourName: 'Syötä ensin oma nimesi!',
         friendsLeaderboard: '👥 Kavereiden tulokset',
         vsYou: 'vs. sinä',
-        noFriendScores: 'Kavereilla ei vielä tuloksia'
+        noFriendScores: 'Kavereilla ei vielä tuloksia',
+        // Multiplayer
+        challenge: '⚔️ Haasta',
+        waitingForOpponent: 'Odotetaan vastustajaa...',
+        challengeReceived: '⚔️ Haaste!',
+        acceptChallenge: 'Hyväksy',
+        declineChallenge: 'Hylkää',
+        opponentScore: 'Vastustaja:',
+        youWin: '🏆 VOITIT!',
+        youLose: '😢 HÄVISIT!',
+        tie: '🤝 TASAPELI!',
+        opponentLeft: 'Vastustaja poistui',
+        getReady: 'Valmistaudu...',
+        go: 'NYT!'
     },
     sv: {
         title: '🦎 ÖDLA RACING',
@@ -672,54 +685,24 @@ async function loadFriends() {
 
 // Send friend request
 async function sendFriendRequest(friendName) {
-    if (!currentPlayerName) {
+    if (!currentPlayerName || currentPlayerName.trim() === '') {
         showCheatNotification(t('enterYourName'));
         return;
     }
 
-    if (!friendName || friendName.trim() === '') return;
+    if (!friendName || friendName.trim() === '') {
+        return;
+    }
 
     const myId = getPlayerId(currentPlayerName);
-    const friendId = getPlayerId(friendName);
+    const friendId = getPlayerId(friendName.trim());
 
     if (myId === friendId) {
-        showCheatNotification(t('playerNotFound')); // Can't friend yourself
+        showCheatNotification('❌'); // Can't friend yourself
         return;
     }
 
-    // Check if player exists in Firebase players database OR leaderboard
-    let playerExists = false;
-    let actualFriendName = friendName.trim();
-
-    try {
-        // First check the registered players database
-        const playerResponse = await fetch(`${FIREBASE_DB_URL}/players/${friendId}.json`);
-        if (playerResponse.ok) {
-            const playerData = await playerResponse.json();
-            if (playerData && playerData.name) {
-                playerExists = true;
-                actualFriendName = playerData.name; // Use the exact registered name
-            }
-        }
-    } catch (e) {
-        console.log('Could not check player:', e);
-    }
-
-    // Also check leaderboard as fallback
-    if (!playerExists) {
-        const leaderboardMatch = leaderboardData.find(e => getPlayerId(e.name) === friendId);
-        if (leaderboardMatch) {
-            playerExists = true;
-            actualFriendName = leaderboardMatch.name;
-        }
-    }
-
-    if (!playerExists) {
-        showCheatNotification(t('playerNotFound'));
-        return;
-    }
-
-    // Check if already friends (check both normalized IDs)
+    // Check if already friends
     const alreadyFriend = friendsList.some(f => getPlayerId(f) === friendId);
     if (alreadyFriend) {
         showCheatNotification(t('alreadyFriends'));
@@ -727,12 +710,12 @@ async function sendFriendRequest(friendName) {
     }
 
     try {
-        // Add request to friend's pending list
+        // Send request directly to Firebase - no existence check needed
         const response = await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/pending.json`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                from: currentPlayerName,
+                from: currentPlayerName.trim(),
                 fromId: myId,
                 date: new Date().toISOString()
             })
@@ -740,17 +723,16 @@ async function sendFriendRequest(friendName) {
 
         if (response.ok) {
             showCheatNotification(t('friendAdded'));
-
             // Clear input field
             const input = document.getElementById('friend-name-input');
             if (input) input.value = '';
         } else {
-            console.log('Friend request failed:', response.status);
-            showCheatNotification('❌ Virhe!');
+            console.error('Friend request failed:', response.status, await response.text());
+            showCheatNotification('❌ Firebase virhe!');
         }
     } catch (e) {
-        console.log('Could not send friend request:', e);
-        showCheatNotification('❌ Virhe!');
+        console.error('Could not send friend request:', e);
+        showCheatNotification('❌ Yhteysvirhe!');
     }
 }
 
@@ -895,6 +877,352 @@ function renderFriendsUI() {
     container.innerHTML = html;
 }
 
+// ============ MULTIPLAYER SYSTEM ============
+let multiplayerState = {
+    isMultiplayer: false,
+    roomId: null,
+    opponentName: '',
+    opponentScore: 0,
+    opponentAlive: true,
+    isHost: false,
+    challengeScore: 0 // For challenge mode
+};
+let pendingChallenges = [];
+let syncInterval = null;
+
+// Load pending challenges
+async function loadChallenges() {
+    if (!currentPlayerName) return;
+    const myId = getPlayerId(currentPlayerName);
+
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/challenges/${myId}.json`);
+        if (response.ok) {
+            const data = await response.json();
+            pendingChallenges = data ? Object.entries(data).map(([key, val]) => ({ ...val, challengeId: key })) : [];
+            renderChallengesUI();
+        }
+    } catch (e) {
+        console.log('Could not load challenges:', e);
+    }
+}
+
+// Send challenge to friend
+async function sendChallenge(friendName, score) {
+    if (!currentPlayerName || !friendName) return;
+
+    const friendId = getPlayerId(friendName);
+
+    try {
+        await fetch(`${FIREBASE_DB_URL}/challenges/${friendId}.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: currentPlayerName,
+                fromId: getPlayerId(currentPlayerName),
+                score: score,
+                date: new Date().toISOString()
+            })
+        });
+        showCheatNotification(`⚔️ Haaste lähetetty: ${score} kärpästä!`);
+    } catch (e) {
+        console.log('Could not send challenge:', e);
+    }
+}
+
+// Accept challenge and start game
+async function acceptChallenge(challenge) {
+    multiplayerState.isMultiplayer = true;
+    multiplayerState.challengeScore = challenge.score;
+    multiplayerState.opponentName = challenge.from;
+    multiplayerState.opponentScore = challenge.score;
+
+    // Delete the challenge
+    const myId = getPlayerId(currentPlayerName);
+    try {
+        await fetch(`${FIREBASE_DB_URL}/challenges/${myId}/${challenge.challengeId}.json`, {
+            method: 'DELETE'
+        });
+    } catch (e) { }
+
+    // Start the game!
+    startGame();
+}
+
+// Decline challenge
+async function declineChallenge(challenge) {
+    const myId = getPlayerId(currentPlayerName);
+    try {
+        await fetch(`${FIREBASE_DB_URL}/challenges/${myId}/${challenge.challengeId}.json`, {
+            method: 'DELETE'
+        });
+        loadChallenges();
+    } catch (e) { }
+}
+
+// Start real-time multiplayer room
+async function startMultiplayerRoom(friendName) {
+    if (!currentPlayerName) return;
+
+    const roomId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const friendId = getPlayerId(friendName);
+
+    multiplayerState.isMultiplayer = true;
+    multiplayerState.roomId = roomId;
+    multiplayerState.opponentName = friendName;
+    multiplayerState.isHost = true;
+    multiplayerState.opponentScore = 0;
+    multiplayerState.opponentAlive = true;
+
+    // Create room in Firebase
+    try {
+        await fetch(`${FIREBASE_DB_URL}/rooms/${roomId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                host: currentPlayerName,
+                hostId: getPlayerId(currentPlayerName),
+                guest: friendName,
+                guestId: friendId,
+                hostScore: 0,
+                guestScore: 0,
+                hostAlive: true,
+                guestAlive: true,
+                status: 'waiting',
+                created: new Date().toISOString()
+            })
+        });
+
+        // Send invite to friend
+        await fetch(`${FIREBASE_DB_URL}/invites/${friendId}.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roomId: roomId,
+                from: currentPlayerName,
+                date: new Date().toISOString()
+            })
+        });
+
+        showCheatNotification(t('waitingForOpponent'));
+
+        // Wait for guest to join
+        waitForOpponent(roomId);
+
+    } catch (e) {
+        console.log('Could not create room:', e);
+        multiplayerState.isMultiplayer = false;
+    }
+}
+
+// Wait for opponent to join
+function waitForOpponent(roomId) {
+    const checkInterval = setInterval(async () => {
+        try {
+            const response = await fetch(`${FIREBASE_DB_URL}/rooms/${roomId}/status.json`);
+            if (response.ok) {
+                const status = await response.json();
+                if (status === 'ready') {
+                    clearInterval(checkInterval);
+                    startMultiplayerGame();
+                }
+            }
+        } catch (e) { }
+    }, 1000);
+
+    // Timeout after 60 seconds
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        if (multiplayerState.roomId === roomId && !state.isRunning) {
+            showCheatNotification(t('opponentLeft'));
+            multiplayerState.isMultiplayer = false;
+        }
+    }, 60000);
+}
+
+// Start multiplayer game with countdown
+function startMultiplayerGame() {
+    showCountdown(() => {
+        startGame();
+        startScoreSync();
+    });
+}
+
+// Show countdown before game
+function showCountdown(callback) {
+    const overlay = document.createElement('div');
+    overlay.id = 'countdown-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-size: 120px;
+        color: #4ade80;
+        font-weight: bold;
+    `;
+    document.body.appendChild(overlay);
+
+    let count = 3;
+    overlay.textContent = count;
+
+    const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            overlay.textContent = count;
+        } else if (count === 0) {
+            overlay.textContent = t('go');
+            overlay.style.color = '#ffd700';
+        } else {
+            clearInterval(interval);
+            overlay.remove();
+            callback();
+        }
+    }, 1000);
+}
+
+// Sync score during multiplayer game
+function startScoreSync() {
+    if (!multiplayerState.roomId) return;
+
+    syncInterval = setInterval(async () => {
+        if (!state.isRunning) {
+            clearInterval(syncInterval);
+            return;
+        }
+
+        const roomId = multiplayerState.roomId;
+        const isHost = multiplayerState.isHost;
+        const scoreKey = isHost ? 'hostScore' : 'guestScore';
+        const aliveKey = isHost ? 'hostAlive' : 'guestAlive';
+
+        try {
+            // Update my score
+            await fetch(`${FIREBASE_DB_URL}/rooms/${roomId}/${scoreKey}.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(state.score)
+            });
+
+            // Get opponent's score
+            const opponentScoreKey = isHost ? 'guestScore' : 'hostScore';
+            const opponentAliveKey = isHost ? 'guestAlive' : 'hostAlive';
+
+            const scoreRes = await fetch(`${FIREBASE_DB_URL}/rooms/${roomId}/${opponentScoreKey}.json`);
+            const aliveRes = await fetch(`${FIREBASE_DB_URL}/rooms/${roomId}/${opponentAliveKey}.json`);
+
+            if (scoreRes.ok) {
+                multiplayerState.opponentScore = await scoreRes.json() || 0;
+            }
+            if (aliveRes.ok) {
+                multiplayerState.opponentAlive = await aliveRes.json();
+            }
+
+            updateMultiplayerHUD();
+
+        } catch (e) { }
+    }, 500);
+}
+
+// Update HUD with opponent score
+function updateMultiplayerHUD() {
+    let opponentHUD = document.getElementById('opponent-hud');
+
+    if (!opponentHUD && multiplayerState.isMultiplayer) {
+        opponentHUD = document.createElement('div');
+        opponentHUD.id = 'opponent-hud';
+        opponentHUD.style.cssText = `
+            position: fixed;
+            top: 60px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #ff6b6b;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            z-index: 1000;
+        `;
+        document.body.appendChild(opponentHUD);
+    }
+
+    if (opponentHUD) {
+        const status = multiplayerState.opponentAlive ? '' : ' 💀';
+        opponentHUD.innerHTML = `${t('opponentScore')} ${multiplayerState.opponentName}: 🪰 ${multiplayerState.opponentScore}${status}`;
+    }
+}
+
+// End multiplayer session
+function endMultiplayerGame() {
+    if (!multiplayerState.isMultiplayer) return;
+
+    if (syncInterval) {
+        clearInterval(syncInterval);
+        syncInterval = null;
+    }
+
+    // Mark as dead in room
+    if (multiplayerState.roomId) {
+        const aliveKey = multiplayerState.isHost ? 'hostAlive' : 'guestAlive';
+        fetch(`${FIREBASE_DB_URL}/rooms/${multiplayerState.roomId}/${aliveKey}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(false)
+        });
+    }
+
+    // Show result
+    setTimeout(() => {
+        let result = '';
+        if (state.score > multiplayerState.opponentScore) {
+            result = t('youWin');
+        } else if (state.score < multiplayerState.opponentScore) {
+            result = t('youLose');
+        } else {
+            result = t('tie');
+        }
+
+        const resultMessage = document.getElementById('rank-message');
+        if (resultMessage) {
+            resultMessage.innerHTML = `${result}<br>${t('opponentScore')} ${multiplayerState.opponentScore}`;
+        }
+
+        // Clean up HUD
+        const opponentHUD = document.getElementById('opponent-hud');
+        if (opponentHUD) opponentHUD.remove();
+
+        // Reset state
+        multiplayerState.isMultiplayer = false;
+        multiplayerState.roomId = null;
+    }, 1000);
+}
+
+// Render challenges UI
+function renderChallengesUI() {
+    if (pendingChallenges.length === 0) return;
+
+    const container = document.getElementById('friends-section');
+    if (!container) return;
+
+    let html = container.innerHTML;
+    html += `<h3>⚔️ Haasteet</h3><div class="pending-requests">`;
+
+    pendingChallenges.forEach(ch => {
+        html += `
+            <div class="pending-request challenge">
+                <span class="request-from">${escapeHtml(ch.from)}: ${ch.score} 🪰</span>
+                <button onclick='acceptChallenge(${JSON.stringify(ch).replace(/'/g, "\\'")})'  class="accept-btn">Pelaa!</button>
+                <button onclick='declineChallenge(${JSON.stringify(ch).replace(/'/g, "\\'")})' class="reject-btn">❌</button>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
 // Helper to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -944,6 +1272,9 @@ function initGameUI() {
 
     // Load friends list
     loadFriends();
+
+    // Load pending challenges
+    loadChallenges();
 
     // Difficulty buttons handling
     const diffButtons = document.querySelectorAll('.diff-btn');
@@ -2646,6 +2977,11 @@ function gameOver() {
         gameOverScoreText.innerHTML = `${t('collected')} <span id="final-score">${state.score}</span> ${t('flies')}`;
     }
 
+    // Handle multiplayer end
+    if (multiplayerState.isMultiplayer) {
+        endMultiplayerGame();
+    }
+
     // Add score to leaderboard and get rank
     const playerName = currentPlayerName || t('unknown');
     const rank = addScore(playerName, state.score);
@@ -2653,7 +2989,9 @@ function gameOver() {
     // Show rank message
     const rankMessage = document.getElementById('rank-message');
     if (rankMessage) {
-        if (rank === 1) {
+        if (multiplayerState.isMultiplayer) {
+            // Multiplayer result will be shown by endMultiplayerGame
+        } else if (rank === 1) {
             rankMessage.textContent = t('newRecord');
         } else if (rank <= 10) {
             rankMessage.textContent = `${t('great')} #${rank}`;
@@ -2664,6 +3002,25 @@ function gameOver() {
 
     // Render leaderboard on game over screen
     renderLeaderboard('game-over-leaderboard-list', playerName, state.score);
+
+    // Add challenge friend button if we have friends
+    const gameOverContent = document.querySelector('#game-over-screen .overlay-content');
+    const existingChallengeSection = document.getElementById('challenge-section');
+    if (existingChallengeSection) existingChallengeSection.remove();
+
+    if (friendsList.length > 0 && state.score > 0) {
+        const challengeSection = document.createElement('div');
+        challengeSection.id = 'challenge-section';
+        challengeSection.style.cssText = 'margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);';
+        challengeSection.innerHTML = `
+            <p style="margin-bottom: 10px;">⚔️ Haasta kaveri tuloksellasi!</p>
+            <select id="challenge-friend-select" style="padding: 8px; border-radius: 5px; margin-right: 10px;">
+                ${friendsList.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('')}
+            </select>
+            <button onclick="sendChallenge(document.getElementById('challenge-friend-select').value, ${state.score})" class="small-btn">Lähetä haaste!</button>
+        `;
+        gameOverContent.insertBefore(challengeSection, document.getElementById('restart-btn'));
+    }
 
     document.getElementById('game-over-screen').classList.remove('hidden');
     stopMusic();
