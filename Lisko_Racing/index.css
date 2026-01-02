@@ -595,3 +595,150 @@ button:active {
         font-size: 0.85rem;
     }
 }
+
+/* ============ FRIEND SYSTEM ============ */
+#friends-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+#friends-section h2 {
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+#friends-section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.add-friend-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.add-friend-form input {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 1rem;
+    min-width: 150px;
+}
+
+.add-friend-form input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.add-friend-form input:focus {
+    outline: none;
+    border-color: #4ade80;
+}
+
+.small-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4ade80, #22d3ee);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.small-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(74, 222, 128, 0.4);
+}
+
+.pending-requests {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.pending-request {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.request-from {
+    font-weight: 600;
+    flex: 1;
+    min-width: 100px;
+}
+
+.accept-btn {
+    padding: 6px 15px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.accept-btn:hover {
+    transform: scale(1.05);
+}
+
+.reject-btn {
+    padding: 6px 15px;
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reject-btn:hover {
+    transform: scale(1.05);
+}
+
+.friends-leaderboard {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.no-friends {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    margin: 10px 0;
+}
+
+@media (max-width: 600px) {
+    .add-friend-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-friend-form input {
+        min-width: auto;
+    }
+
+    .pending-request {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .request-from {
+        width: 100%;
+    }
+}

@@ -39,7 +39,27 @@ const TRANSLATIONS = {
         cheatEnded: 'Supervoimat loppuivat! 💨',
         tongueActivated: 'JÄTTIKIELI AKTIVOITU! 👅',
         tongueFlies: 'kärpästä',
-        tongueEnded: 'Jättikieli loppui! 👅'
+        tongueEnded: 'Jättikieli loppui! 👅',
+        // Friend system
+        friendsTitle: '👥 KAVERIT',
+        addFriend: 'Lisää kaveri',
+        friendNamePlaceholder: 'Kaverin nimi',
+        sendRequest: 'Lähetä pyyntö',
+        pendingRequests: 'Odottavat pyynnöt',
+        noFriends: 'Ei kavereita vielä',
+        noPending: 'Ei odottavia pyyntöjä',
+        accept: 'Hyväksy',
+        reject: 'Hylkää',
+        friendAdded: 'Kaveripyyntö lähetetty! 📨',
+        friendAccepted: 'Kaveri hyväksytty! 🎉',
+        friendRejected: 'Pyyntö hylätty',
+        alreadyFriends: 'Olette jo kavereita!',
+        requestExists: 'Pyyntö on jo lähetetty!',
+        playerNotFound: 'Pelaajaa ei löytynyt!',
+        enterYourName: 'Syötä ensin oma nimesi!',
+        friendsLeaderboard: '👥 Kavereiden tulokset',
+        vsYou: 'vs. sinä',
+        noFriendScores: 'Kavereilla ei vielä tuloksia'
     },
     sv: {
         title: '🦎 ÖDLA RACING',
@@ -74,7 +94,27 @@ const TRANSLATIONS = {
         cheatEnded: 'Superkrafter slut! 💨',
         tongueActivated: 'JÄTTETUNGA AKTIVERAD! 👅',
         tongueFlies: 'flugor',
-        tongueEnded: 'Jättetungan slut! 👅'
+        tongueEnded: 'Jättetungan slut! 👅',
+        // Friend system
+        friendsTitle: '👥 VÄNNER',
+        addFriend: 'Lägg till vän',
+        friendNamePlaceholder: 'Vännens namn',
+        sendRequest: 'Skicka förfrågan',
+        pendingRequests: 'Väntande förfrågningar',
+        noFriends: 'Inga vänner ännu',
+        noPending: 'Inga väntande förfrågningar',
+        accept: 'Acceptera',
+        reject: 'Avvisa',
+        friendAdded: 'Vänförfrågan skickad! 📨',
+        friendAccepted: 'Vän accepterad! 🎉',
+        friendRejected: 'Förfrågan avvisad',
+        alreadyFriends: 'Ni är redan vänner!',
+        requestExists: 'Förfrågan har redan skickats!',
+        playerNotFound: 'Spelaren hittades inte!',
+        enterYourName: 'Ange först ditt eget namn!',
+        friendsLeaderboard: '👥 Vänners resultat',
+        vsYou: 'vs. du',
+        noFriendScores: 'Vänner har inga resultat ännu'
     },
     en: {
         title: '🦎 LIZARD RACING',
@@ -109,7 +149,27 @@ const TRANSLATIONS = {
         cheatEnded: 'Superpowers ended! 💨',
         tongueActivated: 'GIANT TONGUE ACTIVATED! 👅',
         tongueFlies: 'flies',
-        tongueEnded: 'Giant tongue ended! 👅'
+        tongueEnded: 'Giant tongue ended! 👅',
+        // Friend system
+        friendsTitle: '👥 FRIENDS',
+        addFriend: 'Add friend',
+        friendNamePlaceholder: 'Friend\'s name',
+        sendRequest: 'Send request',
+        pendingRequests: 'Pending requests',
+        noFriends: 'No friends yet',
+        noPending: 'No pending requests',
+        accept: 'Accept',
+        reject: 'Reject',
+        friendAdded: 'Friend request sent! 📨',
+        friendAccepted: 'Friend accepted! 🎉',
+        friendRejected: 'Request rejected',
+        alreadyFriends: 'You are already friends!',
+        requestExists: 'Request already sent!',
+        playerNotFound: 'Player not found!',
+        enterYourName: 'Enter your name first!',
+        friendsLeaderboard: '👥 Friends\' scores',
+        vsYou: 'vs. you',
+        noFriendScores: 'Friends have no scores yet'
     }
 };
 
@@ -553,6 +613,257 @@ function resetLeaderboardPage() {
     leaderboardPage = 0;
 }
 
+// ============ FRIEND SYSTEM (Firebase) ============
+let friendsList = [];
+let pendingRequests = [];
+let friendsCache = {};
+
+// Get player's unique ID (based on name, normalized)
+function getPlayerId(name) {
+    return name.trim().toLowerCase().replace(/[^a-z0-9äöåÄÖÅ]/gi, '_');
+}
+
+// Register player in Firebase (so they can be found by friends)
+async function registerPlayer(name) {
+    if (!name || !name.trim()) return;
+
+    const playerId = getPlayerId(name);
+
+    try {
+        await fetch(`${FIREBASE_DB_URL}/players/${playerId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name.trim(),
+                lastSeen: new Date().toISOString()
+            })
+        });
+        console.log('Player registered:', name);
+    } catch (e) {
+        console.log('Could not register player:', e);
+    }
+}
+
+// Load friends list from Firebase
+async function loadFriends() {
+    if (!currentPlayerName) return;
+    const playerId = getPlayerId(currentPlayerName);
+
+    try {
+        // Load accepted friends
+        const friendsResponse = await fetch(`${FIREBASE_DB_URL}/friends/${playerId}/accepted.json`);
+        if (friendsResponse.ok) {
+            const data = await friendsResponse.json();
+            friendsList = data ? Object.values(data) : [];
+        }
+
+        // Load pending requests (requests TO this player)
+        const pendingResponse = await fetch(`${FIREBASE_DB_URL}/friends/${playerId}/pending.json`);
+        if (pendingResponse.ok) {
+            const data = await pendingResponse.json();
+            pendingRequests = data ? Object.entries(data).map(([key, val]) => ({ ...val, requestId: key })) : [];
+        }
+
+        renderFriendsUI();
+    } catch (e) {
+        console.log('Could not load friends:', e);
+    }
+}
+
+// Send friend request
+async function sendFriendRequest(friendName) {
+    if (!currentPlayerName) {
+        showCheatNotification(t('enterYourName'));
+        return;
+    }
+
+    if (!friendName || friendName.trim() === '') return;
+
+    const myId = getPlayerId(currentPlayerName);
+    const friendId = getPlayerId(friendName);
+
+    if (myId === friendId) return; // Can't friend yourself
+
+    // Check if player exists in leaderboard
+    const playerExists = leaderboardData.some(e =>
+        getPlayerId(e.name) === friendId
+    );
+
+    if (!playerExists) {
+        showCheatNotification(t('playerNotFound'));
+        return;
+    }
+
+    // Check if already friends
+    if (friendsList.includes(friendName.trim())) {
+        showCheatNotification(t('alreadyFriends'));
+        return;
+    }
+
+    try {
+        // Add request to friend's pending list
+        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/pending.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: currentPlayerName,
+                fromId: myId,
+                date: new Date().toISOString()
+            })
+        });
+
+        showCheatNotification(t('friendAdded'));
+
+        // Clear input field
+        const input = document.getElementById('friend-name-input');
+        if (input) input.value = '';
+
+    } catch (e) {
+        console.log('Could not send friend request:', e);
+    }
+}
+
+// Accept friend request
+async function acceptFriendRequest(request) {
+    if (!currentPlayerName) return;
+
+    const myId = getPlayerId(currentPlayerName);
+    const friendId = request.fromId;
+    const friendName = request.from;
+
+    try {
+        // Add to my accepted friends
+        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/accepted.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(friendName)
+        });
+
+        // Add me to their accepted friends
+        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/accepted.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentPlayerName)
+        });
+
+        // Remove from pending
+        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/pending/${request.requestId}.json`, {
+            method: 'DELETE'
+        });
+
+        showCheatNotification(t('friendAccepted'));
+        loadFriends(); // Refresh
+
+    } catch (e) {
+        console.log('Could not accept friend request:', e);
+    }
+}
+
+// Reject friend request
+async function rejectFriendRequest(request) {
+    if (!currentPlayerName) return;
+
+    const myId = getPlayerId(currentPlayerName);
+
+    try {
+        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/pending/${request.requestId}.json`, {
+            method: 'DELETE'
+        });
+
+        showCheatNotification(t('friendRejected'));
+        loadFriends(); // Refresh
+
+    } catch (e) {
+        console.log('Could not reject friend request:', e);
+    }
+}
+
+// Get friends' best scores
+function getFriendsScores() {
+    const friendScores = [];
+    const friendIds = friendsList.map(name => getPlayerId(name));
+
+    // Find best score for each friend
+    friendIds.forEach(friendId => {
+        const friendEntries = leaderboardData.filter(e => getPlayerId(e.name) === friendId);
+        if (friendEntries.length > 0) {
+            const best = friendEntries.reduce((a, b) => a.score > b.score ? a : b);
+            friendScores.push(best);
+        }
+    });
+
+    // Add current player's best score
+    if (currentPlayerName) {
+        const myEntries = leaderboardData.filter(e => getPlayerId(e.name) === getPlayerId(currentPlayerName));
+        if (myEntries.length > 0) {
+            const myBest = myEntries.reduce((a, b) => a.score > b.score ? a : b);
+            friendScores.push({ ...myBest, isMe: true });
+        }
+    }
+
+    // Sort by score
+    friendScores.sort((a, b) => b.score - a.score);
+    return friendScores;
+}
+
+// Render friends UI
+function renderFriendsUI() {
+    const container = document.getElementById('friends-section');
+    if (!container) return;
+
+    let html = `<h2>${t('friendsTitle')}</h2>`;
+
+    // Add friend form
+    html += `
+        <div class="add-friend-form">
+            <input type="text" id="friend-name-input" placeholder="${t('friendNamePlaceholder')}" maxlength="15">
+            <button onclick="sendFriendRequest(document.getElementById('friend-name-input').value)" class="small-btn">${t('sendRequest')}</button>
+        </div>
+    `;
+
+    // Pending requests
+    if (pendingRequests.length > 0) {
+        html += `<h3>${t('pendingRequests')}</h3>`;
+        html += '<div class="pending-requests">';
+        pendingRequests.forEach(req => {
+            html += `
+                <div class="pending-request">
+                    <span class="request-from">${escapeHtml(req.from)}</span>
+                    <button onclick="acceptFriendRequest(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="accept-btn">${t('accept')}</button>
+                    <button onclick="rejectFriendRequest(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="reject-btn">${t('reject')}</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    // Friends leaderboard
+    const friendScores = getFriendsScores();
+    if (friendScores.length > 0) {
+        html += `<h3>${t('friendsLeaderboard')}</h3>`;
+        html += '<div class="friends-leaderboard">';
+        friendScores.forEach((entry, i) => {
+            const rank = i + 1;
+            const isMe = entry.isMe;
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+            html += `
+                <div class="leaderboard-entry ${isMe ? 'current-player' : ''}">
+                    <span class="leaderboard-rank">${medal}</span>
+                    <span class="leaderboard-name">${escapeHtml(entry.name)} ${isMe ? `(${t('vsYou')})` : ''}</span>
+                    <span class="leaderboard-score">🪰 ${entry.score}</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+    } else if (friendsList.length === 0) {
+        html += `<p class="no-friends">${t('noFriends')}</p>`;
+    } else {
+        html += `<p class="no-friends">${t('noFriendScores')}</p>`;
+    }
+
+    container.innerHTML = html;
+}
+
 // Helper to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -575,13 +886,33 @@ function initGameUI() {
         nameInput.value = currentPlayerName;
     }
 
-    // Save name on input change
+    // Save name on input change (with debounce)
+    let saveTimeout = null;
     if (nameInput) {
         nameInput.addEventListener('input', (e) => {
             currentPlayerName = e.target.value;
             localStorage.setItem(PLAYER_NAME_KEY, currentPlayerName);
+
+            // Debounce Firebase save (wait 500ms after last keystroke)
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if (currentPlayerName.trim()) {
+                    // Register player in Firebase for friend system
+                    registerPlayer(currentPlayerName);
+                    // Show save confirmation
+                    nameInput.style.borderColor = '#4ade80';
+                    setTimeout(() => {
+                        nameInput.style.borderColor = '';
+                    }, 1000);
+                }
+                // Reload friends when name changes
+                loadFriends();
+            }, 500);
         });
     }
+
+    // Load friends list
+    loadFriends();
 
     // Difficulty buttons handling
     const diffButtons = document.querySelectorAll('.diff-btn');
