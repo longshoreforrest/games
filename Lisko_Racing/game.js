@@ -850,6 +850,22 @@ function renderFriendsUI() {
         html += '</div>';
     }
 
+    // Pending challenges (haasteet)
+    if (pendingChallenges.length > 0) {
+        html += `<h3>⚔️ Haasteet (${pendingChallenges.length})</h3>`;
+        html += '<div class="pending-requests">';
+        pendingChallenges.forEach((ch, idx) => {
+            html += `
+                <div class="pending-request challenge">
+                    <span class="request-from">${escapeHtml(ch.from)}: <strong>${ch.score}</strong> 🪰</span>
+                    <button onclick="acceptChallengeByIndex(${idx})" class="accept-btn">Pelaa!</button>
+                    <button onclick="declineChallengeByIndex(${idx})" class="reject-btn">❌</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
     // Friends leaderboard
     const friendScores = getFriendsScores();
     if (friendScores.length > 0) {
@@ -900,7 +916,8 @@ async function loadChallenges() {
         if (response.ok) {
             const data = await response.json();
             pendingChallenges = data ? Object.entries(data).map(([key, val]) => ({ ...val, challengeId: key })) : [];
-            renderChallengesUI();
+            // Re-render friends UI to show challenges
+            renderFriendsUI();
         }
     } catch (e) {
         console.log('Could not load challenges:', e);
@@ -958,6 +975,19 @@ async function declineChallenge(challenge) {
         });
         loadChallenges();
     } catch (e) { }
+}
+
+// Helper functions for UI buttons (using index)
+function acceptChallengeByIndex(index) {
+    if (pendingChallenges[index]) {
+        acceptChallenge(pendingChallenges[index]);
+    }
+}
+
+function declineChallengeByIndex(index) {
+    if (pendingChallenges[index]) {
+        declineChallenge(pendingChallenges[index]);
+    }
 }
 
 // Start real-time multiplayer room
