@@ -63,9 +63,11 @@ body {
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     z-index: 100;
     transition: opacity 0.3s ease;
+    overflow-y: auto;
+    padding: 20px 0;
 }
 
 .overlay.hidden {
@@ -75,12 +77,14 @@ body {
 .overlay-content {
     text-align: center;
     color: #fff;
-    padding: 60px;
-    background: linear-gradient(145deg, rgba(40, 40, 80, 0.8), rgba(20, 20, 50, 0.9));
+    padding: 40px 60px;
+    background: linear-gradient(145deg, rgba(40, 40, 80, 0.95), rgba(20, 20, 50, 0.98));
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.5s ease;
+    max-width: 90vw;
+    margin: auto;
 }
 
 @keyframes slideUp {
@@ -514,9 +518,80 @@ button:active {
         gap: 8px;
         margin-bottom: 15px;
     }
-    
+
     .lang-btn {
         padding: 6px 12px;
         font-size: 0.8rem;
+    }
+
+    .overlay {
+        padding: 10px;
+    }
+
+    .overlay-content {
+        padding: 20px 15px;
+        max-height: none;
+    }
+}
+
+/* Leaderboard Pagination */
+.leaderboard-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    min-width: auto;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(74, 222, 128, 0.3);
+    border-color: #4ade80;
+    transform: scale(1.1);
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.page-info {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 80px;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .page-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.4rem;
+    }
+
+    .page-info {
+        font-size: 0.85rem;
     }
 }

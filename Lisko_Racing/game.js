@@ -19,7 +19,7 @@ const TRANSLATIONS = {
         hard: 'Vaikea 🔴',
         super: 'SUPER 🔥',
         startGame: 'ALOITA PELI',
-        leaderboardTitle: '🏆 TOP 10 PELAAJAT',
+        leaderboardTitle: '🏆 TOP 100',
         loading: 'Ladataan...',
         noScores: 'Ei tuloksia vielä - pelaa ensimmäisenä!',
         gameOver: '💥 PELI PÄÄTTYI!',
@@ -54,7 +54,7 @@ const TRANSLATIONS = {
         hard: 'Svår 🔴',
         super: 'SUPER 🔥',
         startGame: 'STARTA SPEL',
-        leaderboardTitle: '🏆 TOP 10 SPELARE',
+        leaderboardTitle: '🏆 TOP 100',
         loading: 'Laddar...',
         noScores: 'Inga resultat ännu - spela först!',
         gameOver: '💥 SPELET SLUT!',
@@ -89,7 +89,7 @@ const TRANSLATIONS = {
         hard: 'Hard 🔴',
         super: 'SUPER 🔥',
         startGame: 'START GAME',
-        leaderboardTitle: '🏆 TOP 10 PLAYERS',
+        leaderboardTitle: '🏆 TOP 100',
         loading: 'Loading...',
         noScores: 'No scores yet - be the first to play!',
         gameOver: '💥 GAME OVER!',
@@ -470,21 +470,36 @@ function addScore(name, score) {
     ) + 1;
 }
 
-// Render leaderboard to an element
+// Leaderboard pagination state
+const ITEMS_PER_PAGE = 10;
+let leaderboardPage = 0; // 0 = first page (1-10), 1 = second page (11-20), etc.
+
+// Render leaderboard to an element with pagination
 function renderLeaderboard(elementId, highlightName = null, highlightScore = null) {
     const container = document.getElementById(elementId);
     if (!container) return;
 
-    const top10 = leaderboardData.slice(0, 10);
+    const totalItems = leaderboardData.length;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-    if (top10.length === 0) {
+    // Ensure page is within bounds
+    if (leaderboardPage >= totalPages) leaderboardPage = Math.max(0, totalPages - 1);
+    if (leaderboardPage < 0) leaderboardPage = 0;
+
+    const startIndex = leaderboardPage * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+    const pageItems = leaderboardData.slice(startIndex, endIndex);
+
+    if (totalItems === 0) {
         container.innerHTML = `<p class="loading">${t('noScores')}</p>`;
         return;
     }
 
     let html = '';
-    top10.forEach((entry, i) => {
-        const rank = i + 1;
+
+    // Render entries for current page
+    pageItems.forEach((entry, i) => {
+        const rank = startIndex + i + 1;
         const isCurrentPlayer = highlightName && highlightScore &&
             entry.name === highlightName && entry.score === highlightScore;
 
@@ -505,7 +520,37 @@ function renderLeaderboard(elementId, highlightName = null, highlightScore = nul
         `;
     });
 
+    // Add pagination controls if more than one page
+    if (totalPages > 1) {
+        const pageStart = startIndex + 1;
+        const pageEnd = endIndex;
+
+        html += `
+            <div class="leaderboard-pagination">
+                <button class="page-btn" onclick="changePage(-1)" ${leaderboardPage === 0 ? 'disabled' : ''}>◀</button>
+                <span class="page-info">${pageStart}-${pageEnd} / ${totalItems}</span>
+                <button class="page-btn" onclick="changePage(1)" ${leaderboardPage >= totalPages - 1 ? 'disabled' : ''}>▶</button>
+            </div>
+        `;
+    }
+
     container.innerHTML = html;
+}
+
+// Change leaderboard page
+function changePage(delta) {
+    const totalPages = Math.ceil(leaderboardData.length / ITEMS_PER_PAGE);
+    leaderboardPage += delta;
+
+    if (leaderboardPage < 0) leaderboardPage = 0;
+    if (leaderboardPage >= totalPages) leaderboardPage = totalPages - 1;
+
+    renderLeaderboard('leaderboard-list');
+}
+
+// Reset pagination when loading new data
+function resetLeaderboardPage() {
+    leaderboardPage = 0;
 }
 
 // Helper to escape HTML
