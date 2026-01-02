@@ -1699,12 +1699,12 @@ function handleTouchEnd(e) {
 // Touch button handlers for mobile
 function moveLeft() {
     if (!state.isRunning) return;
-    state.targetLane = Math.max(-1, state.targetLane - 1);
+    state.targetLane = Math.min(1, state.targetLane + 1);
 }
 
 function moveRight() {
     if (!state.isRunning) return;
-    state.targetLane = Math.min(1, state.targetLane + 1);
+    state.targetLane = Math.max(-1, state.targetLane - 1);
 }
 
 // Add touch event listeners
