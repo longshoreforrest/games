@@ -1,6 +1,211 @@
 // Lisko Racing Game 🦎
 // A 3D endless runner starring a cute lizard!
 
+// ============ LANGUAGE / TRANSLATIONS ============
+const LANG_KEY = 'lisko_racing_language';
+let currentLanguage = localStorage.getItem(LANG_KEY) || 'fi';
+
+const TRANSLATIONS = {
+    fi: {
+        title: '🦎 LISKO RACING',
+        subtitle: 'Väistele esteitä ja kerää kärpäsiä!',
+        controls: 'Ohjaus: ← → tai A D',
+        mobileHint: '📱 Pyyhkäise tai käytä nappeja',
+        playerNameLabel: 'Pelaajan nimi:',
+        playerNamePlaceholder: 'Nimesi',
+        difficultyTitle: 'Valitse vaikeustaso:',
+        easy: 'Helppo 🟢',
+        normal: 'Normaali 🟡',
+        hard: 'Vaikea 🔴',
+        super: 'SUPER 🔥',
+        startGame: 'ALOITA PELI',
+        leaderboardTitle: '🏆 TOP 10 PELAAJAT',
+        loading: 'Ladataan...',
+        noScores: 'Ei tuloksia vielä - pelaa ensimmäisenä!',
+        gameOver: '💥 PELI PÄÄTTYI!',
+        collected: 'Keräsit',
+        flies: 'kärpästä!',
+        playAgain: 'PELAA UUDELLEEN',
+        top10: '🏆 TOP 10',
+        fliesHud: '🪰 Kärpäset:',
+        speedHud: '⚡ Nopeus:',
+        newRecord: '🎉 UUSI ENNÄTYS! Olet #1!',
+        great: '🌟 Loistava! Sijoituksesi:',
+        yourRank: 'Sijoituksesi:',
+        unknown: 'Tuntematon',
+        cheatNoMore: 'Ei enää huijauksia jäljellä! ❌',
+        cheatPowerAdded: 'Supervoimia lisätty 10 sek! 🔥',
+        cheatLeft: 'jäljellä',
+        cheatEnded: 'Supervoimat loppuivat! 💨',
+        tongueActivated: 'JÄTTIKIELI AKTIVOITU! 👅',
+        tongueFlies: 'kärpästä',
+        tongueEnded: 'Jättikieli loppui! 👅'
+    },
+    sv: {
+        title: '🦎 ÖDLA RACING',
+        subtitle: 'Undvik hinder och samla flugor!',
+        controls: 'Styrning: ← → eller A D',
+        mobileHint: '📱 Svep eller använd knapparna',
+        playerNameLabel: 'Spelarnamn:',
+        playerNamePlaceholder: 'Ditt namn',
+        difficultyTitle: 'Välj svårighetsgrad:',
+        easy: 'Lätt 🟢',
+        normal: 'Normal 🟡',
+        hard: 'Svår 🔴',
+        super: 'SUPER 🔥',
+        startGame: 'STARTA SPEL',
+        leaderboardTitle: '🏆 TOP 10 SPELARE',
+        loading: 'Laddar...',
+        noScores: 'Inga resultat ännu - spela först!',
+        gameOver: '💥 SPELET SLUT!',
+        collected: 'Du samlade',
+        flies: 'flugor!',
+        playAgain: 'SPELA IGEN',
+        top10: '🏆 TOP 10',
+        fliesHud: '🪰 Flugor:',
+        speedHud: '⚡ Hastighet:',
+        newRecord: '🎉 NYTT REKORD! Du är #1!',
+        great: '🌟 Utmärkt! Din placering:',
+        yourRank: 'Din placering:',
+        unknown: 'Okänd',
+        cheatNoMore: 'Inga fler fusk kvar! ❌',
+        cheatPowerAdded: 'Superkrafter tillagda 10 sek! 🔥',
+        cheatLeft: 'kvar',
+        cheatEnded: 'Superkrafter slut! 💨',
+        tongueActivated: 'JÄTTETUNGA AKTIVERAD! 👅',
+        tongueFlies: 'flugor',
+        tongueEnded: 'Jättetungan slut! 👅'
+    },
+    en: {
+        title: '🦎 LIZARD RACING',
+        subtitle: 'Dodge obstacles and collect flies!',
+        controls: 'Controls: ← → or A D',
+        mobileHint: '📱 Swipe or use buttons',
+        playerNameLabel: 'Player name:',
+        playerNamePlaceholder: 'Your name',
+        difficultyTitle: 'Select difficulty:',
+        easy: 'Easy 🟢',
+        normal: 'Normal 🟡',
+        hard: 'Hard 🔴',
+        super: 'SUPER 🔥',
+        startGame: 'START GAME',
+        leaderboardTitle: '🏆 TOP 10 PLAYERS',
+        loading: 'Loading...',
+        noScores: 'No scores yet - be the first to play!',
+        gameOver: '💥 GAME OVER!',
+        collected: 'You collected',
+        flies: 'flies!',
+        playAgain: 'PLAY AGAIN',
+        top10: '🏆 TOP 10',
+        fliesHud: '🪰 Flies:',
+        speedHud: '⚡ Speed:',
+        newRecord: '🎉 NEW RECORD! You are #1!',
+        great: '🌟 Great! Your rank:',
+        yourRank: 'Your rank:',
+        unknown: 'Unknown',
+        cheatNoMore: 'No more cheats left! ❌',
+        cheatPowerAdded: 'Superpowers added 10 sec! 🔥',
+        cheatLeft: 'left',
+        cheatEnded: 'Superpowers ended! 💨',
+        tongueActivated: 'GIANT TONGUE ACTIVATED! 👅',
+        tongueFlies: 'flies',
+        tongueEnded: 'Giant tongue ended! 👅'
+    }
+};
+
+// Get translation for current language
+function t(key) {
+    return TRANSLATIONS[currentLanguage][key] || TRANSLATIONS['fi'][key] || key;
+}
+
+// Update all UI texts to current language
+function updateLanguageUI() {
+    // Start screen
+    const titleEl = document.querySelector('#start-screen h1');
+    if (titleEl) titleEl.textContent = t('title');
+
+    const subtitleEl = document.querySelector('#start-screen .overlay-content > p:first-of-type');
+    if (subtitleEl) subtitleEl.textContent = t('subtitle');
+
+    const controlsEl = document.querySelector('#start-screen .controls:not(.mobile-hint)');
+    if (controlsEl) controlsEl.textContent = t('controls');
+
+    const mobileHintEl = document.querySelector('#start-screen .mobile-hint');
+    if (mobileHintEl) mobileHintEl.textContent = t('mobileHint');
+
+    const playerLabel = document.querySelector('label[for="player-name"]');
+    if (playerLabel) playerLabel.textContent = t('playerNameLabel');
+
+    const playerInput = document.getElementById('player-name');
+    if (playerInput) playerInput.placeholder = t('playerNamePlaceholder');
+
+    const diffTitle = document.querySelector('#difficulty-selection > p');
+    if (diffTitle) diffTitle.textContent = t('difficultyTitle');
+
+    const diffBtns = document.querySelectorAll('.diff-btn');
+    diffBtns.forEach(btn => {
+        const diff = btn.dataset.diff;
+        if (diff) btn.textContent = t(diff);
+    });
+
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn) startBtn.textContent = t('startGame');
+
+    const leaderboardTitle = document.querySelector('#leaderboard-section h2');
+    if (leaderboardTitle) leaderboardTitle.textContent = t('leaderboardTitle');
+
+    // Game over screen
+    const gameOverTitle = document.querySelector('#game-over-screen h1');
+    if (gameOverTitle) gameOverTitle.textContent = t('gameOver');
+
+    const gameOverLeaderboardTitle = document.querySelector('#game-over-leaderboard h3');
+    if (gameOverLeaderboardTitle) gameOverLeaderboardTitle.textContent = t('top10');
+
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn) restartBtn.textContent = t('playAgain');
+
+    // HUD
+    const scoreLabel = document.getElementById('score');
+    if (scoreLabel) {
+        const scoreValue = document.getElementById('score-value').textContent;
+        scoreLabel.innerHTML = `${t('fliesHud')} <span id="score-value">${scoreValue}</span>`;
+    }
+
+    const speedLabel = document.getElementById('speed');
+    if (speedLabel) {
+        const speedValue = document.getElementById('speed-value').textContent;
+        speedLabel.innerHTML = `${t('speedHud')} <span id="speed-value">${speedValue}</span>x`;
+    }
+
+    // Update language button states
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.lang === currentLanguage);
+    });
+}
+
+// Set language and save to localStorage
+function setLanguage(lang) {
+    if (TRANSLATIONS[lang]) {
+        currentLanguage = lang;
+        localStorage.setItem(LANG_KEY, lang);
+        updateLanguageUI();
+        // Re-render leaderboard with new language
+        renderLeaderboard('leaderboard-list');
+    }
+}
+
+// Initialize language selector
+function initLanguageSelector() {
+    const langBtns = document.querySelectorAll('.lang-btn');
+    langBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setLanguage(btn.dataset.lang);
+        });
+    });
+    // Set initial button state
+    updateLanguageUI();
+}
+
 // ============ GAME STATE ============
 const state = {
     score: 0,
@@ -35,13 +240,13 @@ document.addEventListener('keypress', (e) => {
 
         // Check if uses remaining
         if (cheatUsesLeft <= 0) {
-            showCheatNotification('Ei enää huijauksia jäljellä! ❌');
+            showCheatNotification(t('cheatNoMore'));
             return;
         }
 
         cheatUsesLeft--;
         state.cheatMode = true;
-        showCheatNotification(`Supervoimia lisätty 10 sek! 🔥 (${cheatUsesLeft} jäljellä)`);
+        showCheatNotification(`${t('cheatPowerAdded')} (${cheatUsesLeft} ${t('cheatLeft')})`);
 
         // Clear existing timer if any
         if (cheatTimer) clearTimeout(cheatTimer);
@@ -49,7 +254,7 @@ document.addEventListener('keypress', (e) => {
         // Cheat lasts 10 seconds
         cheatTimer = setTimeout(() => {
             state.cheatMode = false;
-            showCheatNotification('Supervoimat loppuivat! 💨');
+            showCheatNotification(t('cheatEnded'));
         }, 10000);
     }
 
@@ -57,7 +262,7 @@ document.addEventListener('keypress', (e) => {
     if (cheatBuffer.includes('paraslisko')) {
         cheatBuffer = '';
         state.tongueFliesLeft = 15;
-        showCheatNotification('JÄTTIKIELI AKTIVOITU! 👅 (15 kärpästä)');
+        showCheatNotification(`${t('tongueActivated')} (15 ${t('tongueFlies')})`);
     }
 });
 
@@ -180,7 +385,7 @@ function renderLeaderboard(elementId, highlightName = null, highlightScore = nul
     const top10 = leaderboardData.slice(0, 10);
 
     if (top10.length === 0) {
-        container.innerHTML = '<p class="loading">Ei tuloksia vielä - pelaa ensimmäisenä!</p>';
+        container.innerHTML = `<p class="loading">${t('noScores')}</p>`;
         return;
     }
 
@@ -222,6 +427,9 @@ function escapeHtml(text) {
 function initGameUI() {
     loadLeaderboard();
     renderLeaderboard('leaderboard-list');
+
+    // Initialize language selector
+    initLanguageSelector();
 
     // Load saved player name
     const nameInput = document.getElementById('player-name');
@@ -1595,7 +1803,7 @@ function checkCollisions(moveSpeed = 0) {
                 animateTongue(z); // Trigger visual tongue animation!
                 playTongueCatchSound();
                 if (state.tongueFliesLeft <= 0) {
-                    showCheatNotification('Jättikieli loppui! 👅');
+                    showCheatNotification(t('tongueEnded'));
                 }
             } else {
                 playCollectSound();
@@ -1932,19 +2140,25 @@ function gameOver() {
 
     document.getElementById('final-score').textContent = state.score;
 
+    // Update game over screen text with current language
+    const gameOverScoreText = document.querySelector('#game-over-screen .overlay-content > p:first-of-type');
+    if (gameOverScoreText) {
+        gameOverScoreText.innerHTML = `${t('collected')} <span id="final-score">${state.score}</span> ${t('flies')}`;
+    }
+
     // Add score to leaderboard and get rank
-    const playerName = currentPlayerName || 'Tuntematon';
+    const playerName = currentPlayerName || t('unknown');
     const rank = addScore(playerName, state.score);
 
     // Show rank message
     const rankMessage = document.getElementById('rank-message');
     if (rankMessage) {
         if (rank === 1) {
-            rankMessage.textContent = '🎉 UUSI ENNÄTYS! Olet #1!';
+            rankMessage.textContent = t('newRecord');
         } else if (rank <= 10) {
-            rankMessage.textContent = `🌟 Loistava! Sijoituksesi: #${rank}`;
+            rankMessage.textContent = `${t('great')} #${rank}`;
         } else {
-            rankMessage.textContent = `Sijoituksesi: #${rank}`;
+            rankMessage.textContent = `${t('yourRank')} #${rank}`;
         }
     }
 
