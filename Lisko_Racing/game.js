@@ -682,27 +682,53 @@ async function sendFriendRequest(friendName) {
     const myId = getPlayerId(currentPlayerName);
     const friendId = getPlayerId(friendName);
 
-    if (myId === friendId) return; // Can't friend yourself
+    if (myId === friendId) {
+        showCheatNotification(t('playerNotFound')); // Can't friend yourself
+        return;
+    }
 
-    // Check if player exists in leaderboard
-    const playerExists = leaderboardData.some(e =>
-        getPlayerId(e.name) === friendId
-    );
+    // Check if player exists in Firebase players database OR leaderboard
+    let playerExists = false;
+    let actualFriendName = friendName.trim();
+
+    try {
+        // First check the registered players database
+        const playerResponse = await fetch(`${FIREBASE_DB_URL}/players/${friendId}.json`);
+        if (playerResponse.ok) {
+            const playerData = await playerResponse.json();
+            if (playerData && playerData.name) {
+                playerExists = true;
+                actualFriendName = playerData.name; // Use the exact registered name
+            }
+        }
+    } catch (e) {
+        console.log('Could not check player:', e);
+    }
+
+    // Also check leaderboard as fallback
+    if (!playerExists) {
+        const leaderboardMatch = leaderboardData.find(e => getPlayerId(e.name) === friendId);
+        if (leaderboardMatch) {
+            playerExists = true;
+            actualFriendName = leaderboardMatch.name;
+        }
+    }
 
     if (!playerExists) {
         showCheatNotification(t('playerNotFound'));
         return;
     }
 
-    // Check if already friends
-    if (friendsList.includes(friendName.trim())) {
+    // Check if already friends (check both normalized IDs)
+    const alreadyFriend = friendsList.some(f => getPlayerId(f) === friendId);
+    if (alreadyFriend) {
         showCheatNotification(t('alreadyFriends'));
         return;
     }
 
     try {
         // Add request to friend's pending list
-        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/pending.json`, {
+        const response = await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/pending.json`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -712,14 +738,19 @@ async function sendFriendRequest(friendName) {
             })
         });
 
-        showCheatNotification(t('friendAdded'));
+        if (response.ok) {
+            showCheatNotification(t('friendAdded'));
 
-        // Clear input field
-        const input = document.getElementById('friend-name-input');
-        if (input) input.value = '';
-
+            // Clear input field
+            const input = document.getElementById('friend-name-input');
+            if (input) input.value = '';
+        } else {
+            console.log('Friend request failed:', response.status);
+            showCheatNotification('❌ Virhe!');
+        }
     } catch (e) {
         console.log('Could not send friend request:', e);
+        showCheatNotification('❌ Virhe!');
     }
 }
 
