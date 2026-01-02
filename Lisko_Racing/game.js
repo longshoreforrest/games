@@ -320,60 +320,105 @@ const DESPAWN_DISTANCE = -15;
 const GROUND_LENGTH = 40;
 const NUM_GROUND_TILES = 7;
 
-// ============ LEADERBOARD SYSTEM ============
-// Using localStorage for local storage + optional cloud sync
-const LEADERBOARD_KEY = 'lisko_racing_leaderboard';
+// ============ LEADERBOARD SYSTEM (Firebase) ============
+// Firebase Realtime Database URL
+const FIREBASE_DB_URL = 'https://lisko-racing-default-rtdb.europe-west1.firebasedatabase.app';
+
+// Local storage keys for caching
+const LEADERBOARD_CACHE_KEY = 'lisko_racing_leaderboard_cache';
 const PLAYER_NAME_KEY = 'lisko_racing_player_name';
 let currentPlayerName = localStorage.getItem(PLAYER_NAME_KEY) || '';
 let leaderboardData = [];
+let isLoadingLeaderboard = false;
 
-// Load leaderboard from localStorage
-function loadLeaderboard() {
+// Load leaderboard from Firebase (with localStorage cache as fallback)
+async function loadLeaderboard() {
+    // First, load from cache for instant display
     try {
-        const data = localStorage.getItem(LEADERBOARD_KEY);
-        if (data) {
-            leaderboardData = JSON.parse(data);
+        const cached = localStorage.getItem(LEADERBOARD_CACHE_KEY);
+        if (cached) {
+            leaderboardData = JSON.parse(cached);
+            renderLeaderboard('leaderboard-list');
         }
     } catch (e) {
-        console.log('Could not load leaderboard:', e);
-        leaderboardData = [];
+        console.log('Could not load cached leaderboard:', e);
     }
+
+    // Then fetch from Firebase
+    if (isLoadingLeaderboard) return leaderboardData;
+    isLoadingLeaderboard = true;
+
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/leaderboard.json?orderBy="score"&limitToLast=100`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data) {
+                // Convert Firebase object to array
+                leaderboardData = Object.values(data);
+                // Sort by score (highest first)
+                leaderboardData.sort((a, b) => b.score - a.score);
+                // Cache locally
+                localStorage.setItem(LEADERBOARD_CACHE_KEY, JSON.stringify(leaderboardData));
+                // Update display
+                renderLeaderboard('leaderboard-list');
+            }
+        }
+    } catch (e) {
+        console.log('Could not fetch leaderboard from Firebase:', e);
+    }
+
+    isLoadingLeaderboard = false;
     return leaderboardData;
 }
 
-// Save leaderboard to localStorage
-function saveLeaderboard() {
+// Save score to Firebase
+async function saveScoreToFirebase(entry) {
     try {
-        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboardData));
+        const response = await fetch(`${FIREBASE_DB_URL}/leaderboard.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entry)
+        });
+        if (response.ok) {
+            console.log('Score saved to Firebase');
+            // Refresh leaderboard to get updated rankings
+            loadLeaderboard();
+        }
     } catch (e) {
-        console.log('Could not save leaderboard:', e);
+        console.log('Could not save score to Firebase:', e);
     }
 }
 
 // Add score to leaderboard
 function addScore(name, score) {
     if (!name || name.trim() === '') {
-        name = 'Tuntematon';  // "Unknown" in Finnish
+        name = t('unknown');
     }
 
-    // Add the new score
-    leaderboardData.push({
+    const entry = {
         name: name.trim().substring(0, 15),
         score: score,
         date: new Date().toISOString()
-    });
+    };
 
-    // Sort by score (highest first)
+    // Add to local data immediately for instant feedback
+    leaderboardData.push(entry);
     leaderboardData.sort((a, b) => b.score - a.score);
-
-    // Keep only top 100
     leaderboardData = leaderboardData.slice(0, 100);
 
-    saveLeaderboard();
+    // Cache locally
+    try {
+        localStorage.setItem(LEADERBOARD_CACHE_KEY, JSON.stringify(leaderboardData));
+    } catch (e) {
+        console.log('Could not cache leaderboard:', e);
+    }
+
+    // Save to Firebase (async, non-blocking)
+    saveScoreToFirebase(entry);
 
     // Return rank (1-indexed)
-    return leaderboardData.findIndex(entry =>
-        entry.name === name.trim().substring(0, 15) && entry.score === score
+    return leaderboardData.findIndex(e =>
+        e.name === entry.name && e.score === entry.score
     ) + 1;
 }
 
