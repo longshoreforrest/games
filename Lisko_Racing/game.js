@@ -72,7 +72,24 @@ const TRANSLATIONS = {
         tie: '🤝 TASAPELI!',
         opponentLeft: 'Vastustaja poistui',
         getReady: 'Valmistaudu...',
-        go: 'NYT!'
+        go: 'NYT!',
+        // Shop
+        shopTitle: '🛒 KAUPPA',
+        yourCoins: 'Kärpäsesi:',
+        buy: 'Osta',
+        owned: 'Omistettu',
+        equipped: 'Käytössä',
+        equip: 'Valitse',
+        notEnough: 'Ei tarpeeksi kärpäsiä!',
+        purchased: 'Ostettu!',
+        // Skin names
+        skinDefault: 'Vihreä Lisko',
+        skinGold: 'Kultainen Lisko',
+        skinFire: 'Tulilisko',
+        skinIce: 'Jäälisko',
+        skinNeon: 'Neonlisko',
+        skinRainbow: 'Sateenkaarilisko',
+        skinClassic: 'Klassikko Lisko'
     },
     sv: {
         title: '🦎 ÖDLA RACING',
@@ -296,7 +313,8 @@ const state = {
     isInvincible: false,
     invincibleEndTime: 0,
     cheatMode: false, // Secret cheat mode for boosted power-ups
-    tongueFliesLeft: 0 // Auto-catch flies with tongue
+    tongueFliesLeft: 0, // Auto-catch flies with tongue
+    isPaused: false // Pause state
 };
 
 // Cheat code detection
@@ -384,6 +402,217 @@ const DIFFICULTIES = {
     hard: { startSpeed: 2.5, maxSpeed: 15, acceleration: 0.05, spawnIntervalMulti: 0.7 },
     super: { startSpeed: 5.0, maxSpeed: 30, acceleration: 0.1, spawnIntervalMulti: 0.4 } // INSANE MODE
 };
+
+// ============ SHOP SYSTEM ============
+const SHOP_DATA_KEY = 'lisko_racing_shop';
+const TOTAL_FLIES_KEY = 'lisko_racing_total_flies';
+
+// Skin definitions with prices and colors
+const SKINS = {
+    default: {
+        id: 'default',
+        nameKey: 'skinDefault',
+        price: 0,
+        colors: { skin: 0x2e8b57, belly: 0x90ee90, scale: 0x228b22 },
+        owned: true // Always owned
+    },
+    gold: {
+        id: 'gold',
+        nameKey: 'skinGold',
+        price: 100,
+        colors: { skin: 0xffd700, belly: 0xffec8b, scale: 0xdaa520 }
+    },
+    fire: {
+        id: 'fire',
+        nameKey: 'skinFire',
+        price: 250,
+        colors: { skin: 0xff4500, belly: 0xffa500, scale: 0x8b0000 }
+    },
+    ice: {
+        id: 'ice',
+        nameKey: 'skinIce',
+        price: 500,
+        colors: { skin: 0x00bfff, belly: 0xe0ffff, scale: 0x1e90ff }
+    },
+    neon: {
+        id: 'neon',
+        nameKey: 'skinNeon',
+        price: 1000,
+        colors: { skin: 0x39ff14, belly: 0x00ff00, scale: 0x32cd32, emissive: 0x39ff14 }
+    },
+    rainbow: {
+        id: 'rainbow',
+        nameKey: 'skinRainbow',
+        price: 2500,
+        colors: { skin: 0xff69b4, belly: 0x87ceeb, scale: 0x9370db, special: 'rainbow' }
+    },
+    classic: {
+        id: 'classic',
+        nameKey: 'skinClassic',
+        price: 5000, // Most expensive - the original simple lizard!
+        colors: { skin: 0x00aa00, belly: 0x88ff88, scale: 0x006600, special: 'classic' }
+    }
+};
+
+// Shop state
+let shopData = {
+    totalFlies: 0,
+    ownedSkins: ['default'],
+    equippedSkin: 'default'
+};
+
+// Load shop data from localStorage
+function loadShopData() {
+    try {
+        const saved = localStorage.getItem(SHOP_DATA_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            shopData = { ...shopData, ...parsed };
+        }
+        // Also load total flies separately for backwards compatibility
+        const savedFlies = localStorage.getItem(TOTAL_FLIES_KEY);
+        if (savedFlies) {
+            shopData.totalFlies = parseInt(savedFlies) || 0;
+        }
+    } catch (e) {
+        console.log('Could not load shop data:', e);
+    }
+}
+
+// Save shop data to localStorage
+function saveShopData() {
+    try {
+        localStorage.setItem(SHOP_DATA_KEY, JSON.stringify(shopData));
+        localStorage.setItem(TOTAL_FLIES_KEY, shopData.totalFlies.toString());
+    } catch (e) {
+        console.log('Could not save shop data:', e);
+    }
+}
+
+// Add flies (called after each game)
+function addFlies(amount) {
+    shopData.totalFlies += amount;
+    saveShopData();
+    updateCoinsDisplay();
+}
+
+// Buy a skin
+function buySkin(skinId) {
+    const skin = SKINS[skinId];
+    if (!skin) return;
+
+    if (shopData.ownedSkins.includes(skinId)) {
+        // Already owned, equip it
+        equipSkin(skinId);
+        return;
+    }
+
+    if (shopData.totalFlies < skin.price) {
+        showCheatNotification(t('notEnough'));
+        return;
+    }
+
+    // Purchase!
+    shopData.totalFlies -= skin.price;
+    shopData.ownedSkins.push(skinId);
+    shopData.equippedSkin = skinId;
+    saveShopData();
+
+    showCheatNotification(`${t('purchased')} ${t(skin.nameKey)}! 🎉`);
+    applySkin(skinId);
+    renderShopUI();
+    updateCoinsDisplay();
+}
+
+// Equip a skin
+function equipSkin(skinId) {
+    if (!shopData.ownedSkins.includes(skinId)) return;
+
+    shopData.equippedSkin = skinId;
+    saveShopData();
+    applySkin(skinId);
+    renderShopUI();
+}
+
+// Apply skin colors to lizard (will be connected to lizard materials later)
+function applySkin(skinId) {
+    const skin = SKINS[skinId];
+    if (!skin || typeof scaleMaterial === 'undefined') return;
+
+    // Apply colors to lizard materials
+    if (scaleMaterial) scaleMaterial.color.setHex(skin.colors.scale);
+    if (typeof bellyMaterial !== 'undefined' && bellyMaterial) bellyMaterial.color.setHex(skin.colors.belly);
+
+    // Special emissive for neon skin
+    if (skin.colors.emissive) {
+        scaleMaterial.emissive.setHex(skin.colors.emissive);
+        scaleMaterial.emissiveIntensity = 0.3;
+    } else if (!state.isInvincible) {
+        scaleMaterial.emissive.setHex(0x000000);
+        scaleMaterial.emissiveIntensity = 0;
+    }
+}
+
+// Update coins display in UI
+function updateCoinsDisplay() {
+    const coinsEl = document.getElementById('total-coins');
+    if (coinsEl) {
+        coinsEl.textContent = shopData.totalFlies;
+    }
+}
+
+// Render shop UI
+function renderShopUI() {
+    const container = document.getElementById('shop-section');
+    if (!container) return;
+
+    let html = `
+        <h2>${t('shopTitle')}</h2>
+        <p class="coins-display">🪰 ${t('yourCoins')} <strong id="total-coins">${shopData.totalFlies}</strong></p>
+        <div class="skins-grid">
+    `;
+
+    Object.values(SKINS).forEach(skin => {
+        const isOwned = shopData.ownedSkins.includes(skin.id);
+        const isEquipped = shopData.equippedSkin === skin.id;
+        const canAfford = shopData.totalFlies >= skin.price;
+
+        let buttonText, buttonClass, buttonAction;
+        if (isEquipped) {
+            buttonText = t('equipped');
+            buttonClass = 'equipped-btn';
+            buttonAction = '';
+        } else if (isOwned) {
+            buttonText = t('equip');
+            buttonClass = 'equip-btn';
+            buttonAction = `onclick="equipSkin('${skin.id}')"`;
+        } else if (canAfford) {
+            buttonText = `${t('buy')} (${skin.price} 🪰)`;
+            buttonClass = 'buy-btn';
+            buttonAction = `onclick="buySkin('${skin.id}')"`;
+        } else {
+            buttonText = `${skin.price} 🪰`;
+            buttonClass = 'locked-btn';
+            buttonAction = '';
+        }
+
+        const skinColor = `#${skin.colors.skin.toString(16).padStart(6, '0')}`;
+        const bellyColor = `#${skin.colors.belly.toString(16).padStart(6, '0')}`;
+
+        html += `
+            <div class="skin-card ${isEquipped ? 'equipped' : ''} ${isOwned ? 'owned' : ''}">
+                <div class="skin-preview" style="background: linear-gradient(135deg, ${skinColor}, ${bellyColor});">
+                    <span class="skin-icon">🦎</span>
+                </div>
+                <h4>${t(skin.nameKey)}</h4>
+                <button class="${buttonClass}" ${buttonAction}>${buttonText}</button>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
 
 // ============ CONSTANTS ============
 const LANE_WIDTH = 4;
@@ -1268,6 +1497,10 @@ function initGameUI() {
 
     // Initialize language selector
     initLanguageSelector();
+
+    // Initialize shop
+    loadShopData();
+    renderShopUI();
 
     // Load saved player name
     const nameInput = document.getElementById('player-name');
@@ -2855,7 +3088,7 @@ function animateLizard(time) {
 function animate() {
     requestAnimationFrame(animate);
 
-    if (!state.isRunning) {
+    if (!state.isRunning || state.isPaused) {
         renderer.render(scene, camera);
         return;
     }
@@ -2982,6 +3215,9 @@ function startGame() {
     scaleMaterial.emissive.setHex(0x000000);
     scaleMaterial.emissiveIntensity = 0;
 
+    // Apply equipped skin
+    applySkin(shopData.equippedSkin);
+
     // Reset cheat uses
     cheatUsesLeft = 2;
     state.cheatMode = false;
@@ -3017,6 +3253,11 @@ function gameOver() {
     // Handle multiplayer end
     if (multiplayerState.isMultiplayer) {
         endMultiplayerGame();
+    }
+
+    // Add collected flies to total (for shop)
+    if (state.score > 0) {
+        addFlies(state.score);
     }
 
     // Add score to leaderboard and get rank
@@ -3064,13 +3305,57 @@ function gameOver() {
     playCrashSound();
 }
 
+// ============ PAUSE SYSTEM ============
+function pauseGame() {
+    if (!state.isRunning || state.isGameOver || state.isPaused) return;
+
+    state.isPaused = true;
+    document.getElementById('pause-screen').classList.remove('hidden');
+    document.getElementById('pause-score').textContent = `🪰 ${state.score} ${t('flies')}`;
+    stopMusic();
+}
+
+function resumeGame() {
+    if (!state.isPaused) return;
+
+    state.isPaused = false;
+    document.getElementById('pause-screen').classList.add('hidden');
+    startMusic();
+}
+
+function quitGame() {
+    state.isPaused = false;
+    state.isRunning = false;
+    state.isGameOver = true;
+
+    // Save collected flies
+    if (state.score > 0) {
+        addFlies(state.score);
+    }
+
+    document.getElementById('pause-screen').classList.add('hidden');
+    document.getElementById('start-screen').classList.remove('hidden');
+    stopMusic();
+}
+
 // ============ EVENT LISTENERS ============
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
+document.getElementById('pause-btn').addEventListener('click', pauseGame);
+document.getElementById('resume-btn').addEventListener('click', resumeGame);
+document.getElementById('quit-btn').addEventListener('click', quitGame);
 
 document.addEventListener('keydown', (e) => {
     if ((e.key === ' ' || e.key === 'Enter') && !state.isRunning) {
         startGame();
+    }
+    // Escape to pause/resume
+    if (e.key === 'Escape') {
+        if (state.isPaused) {
+            resumeGame();
+        } else if (state.isRunning && !state.isGameOver) {
+            pauseGame();
+        }
     }
 });
 

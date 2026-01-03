@@ -16,6 +16,17 @@
         <div id="hud">
             <div id="score">🪰 Kärpäset: <span id="score-value">0</span></div>
             <div id="speed">⚡ Nopeus: <span id="speed-value">1.0</span>x</div>
+            <button id="pause-btn">⏸️</button>
+        </div>
+
+        <!-- Pause Screen -->
+        <div id="pause-screen" class="overlay hidden">
+            <div class="overlay-content pause-content">
+                <h1>⏸️ TAUKO</h1>
+                <p id="pause-score"></p>
+                <button id="resume-btn" class="pause-menu-btn">▶️ Jatka</button>
+                <button id="quit-btn" class="pause-menu-btn quit">🚪 Lopeta</button>
+            </div>
         </div>
 
         <!-- Start Screen -->
@@ -47,6 +58,10 @@
                 </div>
 
                 <button id="start-btn">ALOITA PELI</button>
+
+                <div id="shop-section">
+                    <!-- Shop UI will be rendered here by JavaScript -->
+                </div>
 
                 <div id="leaderboard-section">
                     <h2>🏆 TOP 100</h2>
