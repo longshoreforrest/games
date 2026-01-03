@@ -19,7 +19,7 @@ const TRANSLATIONS = {
         hard: 'Vaikea 🔴',
         super: 'SUPER 🔥',
         startGame: 'ALOITA PELI',
-        leaderboardTitle: '🏆 TOP 100',
+        leaderboardTitle: '🏆 TOP 1000',
         loading: 'Ladataan...',
         noScores: 'Ei tuloksia vielä - pelaa ensimmäisenä!',
         gameOver: '💥 PELI PÄÄTTYI!',
@@ -104,7 +104,7 @@ const TRANSLATIONS = {
         hard: 'Svår 🔴',
         super: 'SUPER 🔥',
         startGame: 'STARTA SPEL',
-        leaderboardTitle: '🏆 TOP 100',
+        leaderboardTitle: '🏆 TOP 1000',
         loading: 'Laddar...',
         noScores: 'Inga resultat ännu - spela först!',
         gameOver: '💥 SPELET SLUT!',
@@ -159,7 +159,7 @@ const TRANSLATIONS = {
         hard: 'Hard 🔴',
         super: 'SUPER 🔥',
         startGame: 'START GAME',
-        leaderboardTitle: '🏆 TOP 100',
+        leaderboardTitle: '🏆 TOP 1000',
         loading: 'Loading...',
         noScores: 'No scores yet - be the first to play!',
         gameOver: '💥 GAME OVER!',
@@ -626,13 +626,50 @@ const NUM_GROUND_TILES = 7;
 // Firebase Realtime Database URL
 const FIREBASE_DB_URL = 'https://lisko-racing-default-rtdb.europe-west1.firebasedatabase.app';
 
-// Local storage keys for caching
 const LEADERBOARD_CACHE_KEY = 'lisko_racing_leaderboard_cache';
 const OLD_LEADERBOARD_KEY = 'lisko_racing_leaderboard'; // Old key to migrate from
 const PLAYER_NAME_KEY = 'lisko_racing_player_name';
 let currentPlayerName = localStorage.getItem(PLAYER_NAME_KEY) || '';
 let leaderboardData = [];
 let isLoadingLeaderboard = false;
+let totalGamesPlayed = 0;
+
+// Load and increment total games counter from Firebase
+async function loadGamesCounter() {
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/stats/totalGames.json`);
+        if (response.ok) {
+            const data = await response.json();
+            totalGamesPlayed = data || 0;
+            updateGamesCounter();
+        }
+    } catch (e) {
+        console.log('Could not load games counter:', e);
+    }
+}
+
+// Increment games counter
+async function incrementGamesCounter() {
+    try {
+        totalGamesPlayed++;
+        updateGamesCounter();
+        await fetch(`${FIREBASE_DB_URL}/stats/totalGames.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(totalGamesPlayed)
+        });
+    } catch (e) {
+        console.log('Could not increment games counter:', e);
+    }
+}
+
+// Update games counter display
+function updateGamesCounter() {
+    const counterEl = document.getElementById('games-counter');
+    if (counterEl) {
+        counterEl.textContent = totalGamesPlayed.toLocaleString();
+    }
+}
 
 // Migrate old local leaderboard data to Firebase (one-time)
 async function migrateOldLeaderboard() {
@@ -1538,6 +1575,9 @@ function initGameUI() {
 
     // Load pending challenges
     loadChallenges();
+
+    // Load games counter
+    loadGamesCounter();
 
     // Auto-refresh challenges every 10 seconds
     setInterval(() => {
@@ -3241,6 +3281,9 @@ function startGame() {
 
     updateHUD();
     startMusic();
+
+    // Increment global games counter
+    incrementGamesCounter();
 }
 
 // Show challenge opponent score during game
