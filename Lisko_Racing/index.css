@@ -259,6 +259,28 @@ button:active {
     transform: scale(0.95);
 }
 
+/* Secondary Button (for menu/back buttons) */
+.secondary-btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(100, 100, 100, 0.5);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-btn:hover {
+    background: rgba(150, 150, 150, 0.6);
+    transform: scale(1.02);
+}
+
 /* Hide mobile controls on desktop */
 @media (hover: hover) and (pointer: fine) {
     #mobile-controls {

@@ -3236,13 +3236,55 @@ function startGame() {
     document.getElementById('game-over-screen').classList.add('hidden');
     document.getElementById('pause-screen').classList.add('hidden');
 
+    // Show challenge target if playing a challenge
+    showChallengeHUD();
+
     updateHUD();
     startMusic();
+}
+
+// Show challenge opponent score during game
+function showChallengeHUD() {
+    // Remove existing challenge HUD
+    const existing = document.getElementById('challenge-hud');
+    if (existing) existing.remove();
+
+    // Only show if we're in a challenge
+    if (multiplayerState.isMultiplayer && multiplayerState.challengeScore > 0) {
+        const challengeHUD = document.createElement('div');
+        challengeHUD.id = 'challenge-hud';
+        challengeHUD.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(255, 100, 100, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        `;
+        challengeHUD.innerHTML = `⚔️ ${t('opponentScore')} <strong>${multiplayerState.opponentName}</strong>: <span style="color:#ffd700;font-size:1.2rem;">${multiplayerState.challengeScore} 🪰</span>`;
+        document.body.appendChild(challengeHUD);
+    }
+}
+
+// Hide challenge HUD
+function hideChallengeHUD() {
+    const challengeHUD = document.getElementById('challenge-hud');
+    if (challengeHUD) challengeHUD.remove();
 }
 
 function gameOver() {
     state.isRunning = false;
     state.isGameOver = true;
+
+    // Hide challenge HUD
+    hideChallengeHUD();
 
     document.getElementById('final-score').textContent = state.score;
 
@@ -3260,6 +3302,21 @@ function gameOver() {
     // Add collected flies to total (for shop)
     if (state.score > 0) {
         addFlies(state.score);
+    }
+
+    // Bonus flies for winning a challenge!
+    if (multiplayerState.challengeScore > 0 && state.score > multiplayerState.challengeScore) {
+        addFlies(25);
+        showCheatNotification('🏆 +25 bonuskärpästä voitosta!');
+    }
+    // Penalty for losing a challenge
+    else if (multiplayerState.challengeScore > 0 && state.score <= multiplayerState.challengeScore) {
+        const penalty = Math.min(25, shopData.totalFlies); // Don't go below 0
+        if (penalty > 0) {
+            shopData.totalFlies -= penalty;
+            saveShopData();
+            showCheatNotification(`😢 -${penalty} kärpästä häviöstä!`);
+        }
     }
 
     // Add score to leaderboard and get rank
@@ -3340,9 +3397,18 @@ function quitGame() {
     stopMusic();
 }
 
+// Go back to main menu from game over
+function goToMenu() {
+    document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('start-screen').classList.remove('hidden');
+    // Refresh shop UI
+    renderShopUI();
+}
+
 // ============ EVENT LISTENERS ============
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
+document.getElementById('menu-btn').addEventListener('click', goToMenu);
 document.getElementById('pause-btn').addEventListener('click', pauseGame);
 document.getElementById('resume-btn').addEventListener('click', resumeGame);
 document.getElementById('quit-btn').addEventListener('click', quitGame);
