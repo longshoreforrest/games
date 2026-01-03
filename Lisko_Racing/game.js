@@ -85,10 +85,18 @@ const TRANSLATIONS = {
         // Skin names
         skinDefault: 'Vihreä Lisko',
         skinGold: 'Kultainen Lisko',
+        skinPurple: 'Violetti Lisko',
         skinFire: 'Tulilisko',
+        skinOcean: 'Merilisko',
         skinIce: 'Jäälisko',
+        skinSunset: 'Auringonlasku',
+        skinToxic: 'Myrkylisko',
         skinNeon: 'Neonlisko',
+        skinMidnight: 'Yölisko',
+        skinCandy: 'Karamellikko',
+        skinStealth: 'Varjolisko',
         skinRainbow: 'Sateenkaarilisko',
+        skinDiamond: 'Timanttilisko',
         skinClassic: 'Klassikko Lisko'
     },
     sv: {
@@ -314,8 +322,13 @@ const state = {
     invincibleEndTime: 0,
     cheatMode: false, // Secret cheat mode for boosted power-ups
     tongueFliesLeft: 0, // Auto-catch flies with tongue
-    isPaused: false // Pause state
+    isPaused: false, // Pause state
+    destroyerMode: false // Destroy obstacles instead of crashing
 };
+
+// Destroyer mode variables
+let destroyerTimer = null;
+let destroyerUsesLeft = 2;
 
 // Cheat code detection
 let cheatBuffer = '';
@@ -354,6 +367,33 @@ document.addEventListener('keypress', (e) => {
         cheatBuffer = '';
         state.tongueFliesLeft = 15;
         showCheatNotification(`${t('tongueActivated')} (15 ${t('tongueFlies')})`);
+    }
+
+    // liskogaming cheat - destroyer mode (destroy obstacles for 5 flies each)
+    if (cheatBuffer.includes('liskogaming')) {
+        cheatBuffer = '';
+
+        // Check if uses remaining
+        if (destroyerUsesLeft <= 0) {
+            showCheatNotification('🚫 Ei käyttökertoja jäljellä!');
+            return;
+        }
+
+        destroyerUsesLeft--;
+        state.destroyerMode = true;
+
+        // Clear previous timer
+        if (destroyerTimer) {
+            clearTimeout(destroyerTimer);
+        }
+
+        showCheatNotification(`💥 TUHOAJA! (8s) - ${destroyerUsesLeft} käyttöä jäljellä`);
+
+        // End destroyer mode after 8 seconds
+        destroyerTimer = setTimeout(() => {
+            state.destroyerMode = false;
+            showCheatNotification('💥 Tuhoajatila päättyi!');
+        }, 8000);
     }
 });
 
@@ -422,11 +462,23 @@ const SKINS = {
         price: 100,
         colors: { skin: 0xffd700, belly: 0xffec8b, scale: 0xdaa520 }
     },
+    purple: {
+        id: 'purple',
+        nameKey: 'skinPurple',
+        price: 150,
+        colors: { skin: 0x9932cc, belly: 0xdda0dd, scale: 0x800080 }
+    },
     fire: {
         id: 'fire',
         nameKey: 'skinFire',
         price: 250,
         colors: { skin: 0xff4500, belly: 0xffa500, scale: 0x8b0000 }
+    },
+    ocean: {
+        id: 'ocean',
+        nameKey: 'skinOcean',
+        price: 350,
+        colors: { skin: 0x006994, belly: 0x40e0d0, scale: 0x004c70 }
     },
     ice: {
         id: 'ice',
@@ -434,17 +486,53 @@ const SKINS = {
         price: 500,
         colors: { skin: 0x00bfff, belly: 0xe0ffff, scale: 0x1e90ff }
     },
+    sunset: {
+        id: 'sunset',
+        nameKey: 'skinSunset',
+        price: 600,
+        colors: { skin: 0xff6347, belly: 0xffd700, scale: 0xff4500 }
+    },
+    toxic: {
+        id: 'toxic',
+        nameKey: 'skinToxic',
+        price: 750,
+        colors: { skin: 0x00ff00, belly: 0xadff2f, scale: 0x32cd32, emissive: 0x00ff00 }
+    },
     neon: {
         id: 'neon',
         nameKey: 'skinNeon',
         price: 1000,
         colors: { skin: 0x39ff14, belly: 0x00ff00, scale: 0x32cd32, emissive: 0x39ff14 }
     },
+    midnight: {
+        id: 'midnight',
+        nameKey: 'skinMidnight',
+        price: 1200,
+        colors: { skin: 0x191970, belly: 0x483d8b, scale: 0x0d0d30 }
+    },
+    candy: {
+        id: 'candy',
+        nameKey: 'skinCandy',
+        price: 1500,
+        colors: { skin: 0xff69b4, belly: 0xffc0cb, scale: 0xff1493 }
+    },
+    stealth: {
+        id: 'stealth',
+        nameKey: 'skinStealth',
+        price: 2000,
+        colors: { skin: 0x2f2f2f, belly: 0x4a4a4a, scale: 0x1a1a1a }
+    },
     rainbow: {
         id: 'rainbow',
         nameKey: 'skinRainbow',
         price: 2500,
         colors: { skin: 0xff69b4, belly: 0x87ceeb, scale: 0x9370db, special: 'rainbow' }
+    },
+    diamond: {
+        id: 'diamond',
+        nameKey: 'skinDiamond',
+        price: 3500,
+        colors: { skin: 0xb9f2ff, belly: 0xe0ffff, scale: 0x87ceeb, emissive: 0xb9f2ff }
     },
     classic: {
         id: 'classic',
@@ -810,8 +898,8 @@ function addScore(name, score) {
 }
 
 // Leaderboard pagination state
-const ITEMS_PER_PAGE = 10;
-let leaderboardPage = 0; // 0 = first page (1-10), 1 = second page (11-20), etc.
+const ITEMS_PER_PAGE = 50; // Show 50 entries per page
+let leaderboardPage = 0; // 0 = first page (1-50), 1 = second page (51-100), etc.
 
 // Render leaderboard to an element with pagination
 function renderLeaderboard(elementId, highlightName = null, highlightScore = null) {
@@ -1011,16 +1099,16 @@ async function acceptFriendRequest(request) {
     const friendName = request.from;
 
     try {
-        // Add to my accepted friends
-        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/accepted.json`, {
-            method: 'POST',
+        // Add to my accepted friends (using friendId as key)
+        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/accepted/${friendId}.json`, {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(friendName)
         });
 
-        // Add me to their accepted friends
-        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/accepted.json`, {
-            method: 'POST',
+        // Add me to their accepted friends (using myId as key)
+        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/accepted/${myId}.json`, {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(currentPlayerName)
         });
@@ -1054,6 +1142,55 @@ async function rejectFriendRequest(request) {
 
     } catch (e) {
         console.log('Could not reject friend request:', e);
+    }
+}
+
+// Remove friend
+async function removeFriend(friendName) {
+    if (!currentPlayerName || !friendName) return;
+
+    const myId = getPlayerId(currentPlayerName);
+    const friendId = getPlayerId(friendName);
+
+    try {
+        // First, get my friends list to find the correct key
+        const myFriendsResponse = await fetch(`${FIREBASE_DB_URL}/friends/${myId}/accepted.json`);
+        if (myFriendsResponse.ok) {
+            const myFriends = await myFriendsResponse.json();
+            if (myFriends) {
+                // Find the key for this friend (could be friendId or a random POST key)
+                for (const [key, value] of Object.entries(myFriends)) {
+                    if (value === friendName || key === friendId) {
+                        await fetch(`${FIREBASE_DB_URL}/friends/${myId}/accepted/${key}.json`, {
+                            method: 'DELETE'
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Also remove me from friend's list
+        const friendFriendsResponse = await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/accepted.json`);
+        if (friendFriendsResponse.ok) {
+            const friendFriends = await friendFriendsResponse.json();
+            if (friendFriends) {
+                for (const [key, value] of Object.entries(friendFriends)) {
+                    if (value === currentPlayerName || key === myId) {
+                        await fetch(`${FIREBASE_DB_URL}/friends/${friendId}/accepted/${key}.json`, {
+                            method: 'DELETE'
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        showCheatNotification(`❌ ${friendName} poistettu kavereista`);
+        loadFriends(); // Refresh
+
+    } catch (e) {
+        console.log('Could not remove friend:', e);
     }
 }
 
@@ -1146,6 +1283,7 @@ function renderFriendsUI() {
                     <span class="leaderboard-rank">${medal}</span>
                     <span class="leaderboard-name">${escapeHtml(entry.name)} ${isMe ? `(${t('vsYou')})` : ''}</span>
                     <span class="leaderboard-score">🪰 ${entry.score}</span>
+                    ${!isMe ? `<button class="remove-friend-btn" onclick="removeFriend('${escapeHtml(entry.name)}')" title="Poista kaveri">❌</button>` : ''}
                 </div>
             `;
         });
@@ -1519,13 +1657,157 @@ function renderChallengesUI() {
     container.innerHTML = html;
 }
 
+// ============ FEATURE REQUEST SYSTEM ============
+let featureRequests = [];
+
+// Load feature requests from Firebase
+async function loadFeatureRequests() {
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/featureRequests.json`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data) {
+                featureRequests = Object.entries(data).map(([key, val]) => ({
+                    ...val,
+                    id: key
+                })).sort((a, b) => (b.votes || 0) - (a.votes || 0)); // Sort by votes
+            } else {
+                featureRequests = [];
+            }
+            renderFeatureRequestsUI();
+        }
+    } catch (e) {
+        console.log('Could not load feature requests:', e);
+    }
+}
+
+// Submit a new feature request
+async function submitFeatureRequest() {
+    const input = document.getElementById('feature-request-input');
+    const text = input ? input.value.trim() : '';
+
+    if (!text) {
+        showCheatNotification('Kirjoita ehdotus ensin!');
+        return;
+    }
+
+    if (text.length < 5) {
+        showCheatNotification('Ehdotus on liian lyhyt!');
+        return;
+    }
+
+    const authorName = currentPlayerName || 'Anonyymi';
+
+    try {
+        await fetch(`${FIREBASE_DB_URL}/featureRequests.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: text,
+                author: authorName,
+                date: new Date().toISOString(),
+                votes: 0,
+                voters: {}
+            })
+        });
+
+        input.value = '';
+        showCheatNotification('💡 Ehdotus lähetetty!');
+        loadFeatureRequests();
+
+    } catch (e) {
+        console.log('Could not submit feature request:', e);
+    }
+}
+
+// Vote for a feature request
+async function voteFeatureRequest(requestId) {
+    const voterId = currentPlayerName ? getPlayerId(currentPlayerName) : 'anon_' + Math.random().toString(36).substr(2, 9);
+
+    try {
+        // Check if already voted
+        const request = featureRequests.find(r => r.id === requestId);
+        if (request && request.voters && request.voters[voterId]) {
+            showCheatNotification('Olet jo äänestänyt tätä!');
+            return;
+        }
+
+        // Increment vote count
+        const newVotes = (request?.votes || 0) + 1;
+
+        await fetch(`${FIREBASE_DB_URL}/featureRequests/${requestId}/votes.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newVotes)
+        });
+
+        // Mark as voted
+        await fetch(`${FIREBASE_DB_URL}/featureRequests/${requestId}/voters/${voterId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(true)
+        });
+
+        showCheatNotification('👍 Ääni annettu!');
+        loadFeatureRequests();
+
+    } catch (e) {
+        console.log('Could not vote:', e);
+    }
+}
+
+// Render feature requests UI
+function renderFeatureRequestsUI() {
+    const container = document.getElementById('requests-section');
+    if (!container) return;
+
+    let html = `
+        <h2>💡 EHDOTUKSET</h2>
+        <p class="requests-info">Ehdota uusia ominaisuuksia peliin!</p>
+        
+        <div class="submit-request-form">
+            <textarea id="feature-request-input" placeholder="Kirjoita ehdotuksesi..." maxlength="200" rows="2"></textarea>
+            <button onclick="submitFeatureRequest()" class="submit-request-btn">📤 Lähetä ehdotus</button>
+        </div>
+        
+        <h3>📋 Ehdotukset (${featureRequests.length})</h3>
+        <div class="requests-list">
+    `;
+
+    if (featureRequests.length === 0) {
+        html += '<p class="no-requests">Ei ehdotuksia vielä - ole ensimmäinen!</p>';
+    } else {
+        featureRequests.forEach(req => {
+            const date = new Date(req.date).toLocaleDateString('fi-FI');
+            const voterId = currentPlayerName ? getPlayerId(currentPlayerName) : '';
+            const hasVoted = req.voters && req.voters[voterId];
+
+            html += `
+                <div class="request-card">
+                    <div class="request-content">
+                        <p class="request-text">${escapeHtml(req.text)}</p>
+                        <span class="request-meta">— ${escapeHtml(req.author)}, ${date}</span>
+                    </div>
+                    <div class="request-votes">
+                        <button onclick="voteFeatureRequest('${req.id}')" class="vote-btn ${hasVoted ? 'voted' : ''}" ${hasVoted ? 'disabled' : ''}>
+                            👍 ${req.votes || 0}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
 // Helper to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
-
 
 // Initialize game UI on page load
 function initGameUI() {
@@ -1578,6 +1860,9 @@ function initGameUI() {
 
     // Load games counter
     loadGamesCounter();
+
+    // Load feature requests
+    loadFeatureRequests();
 
     // Auto-refresh challenges every 10 seconds
     setInterval(() => {
@@ -2902,20 +3187,32 @@ function checkCollisions(moveSpeed = 0) {
     const lizardX = lizardGroup.position.x;
     const lizardZ = lizardGroup.position.z; // Always 0
 
-    // Check obstacles (skip if invincible)
-    if (!state.isInvincible) {
-        for (let i = state.obstacles.length - 1; i >= 0; i--) {
-            const obs = state.obstacles[i];
-            const dx = Math.abs(obs.position.x - lizardX);
-            // Enhanced Z check to prevent tunneling at high speeds
-            const z = obs.position.z;
-            const collisionDepth = 1.2;
-            const hitZ = z <= collisionDepth && z >= -(collisionDepth + moveSpeed); // Swept collision check
+    // Check obstacles
+    for (let i = state.obstacles.length - 1; i >= 0; i--) {
+        const obs = state.obstacles[i];
+        const dx = Math.abs(obs.position.x - lizardX);
+        // Enhanced Z check to prevent tunneling at high speeds
+        const z = obs.position.z;
+        const collisionDepth = 1.2;
+        const hitZ = z <= collisionDepth && z >= -(collisionDepth + moveSpeed); // Swept collision check
 
-            if (dx < 1.2 && hitZ) {
-                gameOver();
-                return;
+        if (dx < 1.2 && hitZ) {
+            // Destroyer mode: destroy obstacle for 5 flies
+            if (state.destroyerMode) {
+                scene.remove(obs);
+                state.obstacles.splice(i, 1);
+                state.score += 5;
+                playPowerUpSound();
+                updateHUD();
+                continue;
             }
+            // Invincible: skip damage
+            if (state.isInvincible) {
+                continue;
+            }
+            // Normal: game over
+            gameOver();
+            return;
         }
     }
 
@@ -3263,9 +3560,15 @@ function startGame() {
     state.cheatMode = false;
     state.tongueFliesLeft = 0; // Reset tongue power
     state.isPaused = false; // Reset pause state
+    state.destroyerMode = false; // Reset destroyer mode
+    destroyerUsesLeft = 2; // Reset destroyer uses
     if (cheatTimer) {
         clearTimeout(cheatTimer);
         cheatTimer = null;
+    }
+    if (destroyerTimer) {
+        clearTimeout(destroyerTimer);
+        destroyerTimer = null;
     }
 
     // Reset lizard position

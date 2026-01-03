@@ -179,6 +179,19 @@ body {
     text-shadow: none;
 }
 
+/* Games Counter Display */
+.games-counter-display {
+    font-size: 1rem !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 10px !important;
+}
+
+.games-counter-display #games-counter {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
 .overlay-content p {
     font-size: 1.3rem;
     color: rgba(255, 255, 255, 0.8);
@@ -383,10 +396,34 @@ button:active {
 
 #leaderboard-list,
 #game-over-leaderboard-list {
-    max-height: 250px;
+    max-height: 500px;
     overflow-y: auto;
     text-align: left;
     padding: 0 10px;
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for leaderboard */
+#leaderboard-list::-webkit-scrollbar,
+#game-over-leaderboard-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#leaderboard-list::-webkit-scrollbar-track,
+#game-over-leaderboard-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+#leaderboard-list::-webkit-scrollbar-thumb,
+#game-over-leaderboard-list::-webkit-scrollbar-thumb {
+    background: rgba(74, 222, 128, 0.5);
+    border-radius: 4px;
+}
+
+#leaderboard-list::-webkit-scrollbar-thumb:hover,
+#game-over-leaderboard-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 222, 128, 0.8);
 }
 
 .leaderboard-entry {
@@ -809,6 +846,28 @@ button:active {
     overflow-y: auto;
 }
 
+.friends-leaderboard .leaderboard-entry {
+    position: relative;
+}
+
+.remove-friend-btn {
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.5;
+    margin-left: 8px;
+}
+
+.remove-friend-btn:hover {
+    color: #ef4444;
+    opacity: 1;
+    transform: scale(1.2);
+}
+
 .no-friends {
     color: rgba(255, 255, 255, 0.6);
     font-style: italic;
@@ -977,5 +1036,155 @@ button:active {
     .skin-card button {
         font-size: 0.7rem;
         padding: 6px 8px;
+    }
+}
+
+/* ============ FEATURE REQUEST SYSTEM ============ */
+#requests-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#requests-section h2 {
+    margin-bottom: 10px;
+    color: #ffd700;
+}
+
+.requests-info {
+    font-size: 0.9rem !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 15px !important;
+}
+
+.submit-request-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.submit-request-form textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1rem;
+    resize: none;
+    font-family: inherit;
+}
+
+.submit-request-form textarea:focus {
+    outline: none;
+    border-color: #4ade80;
+}
+
+.submit-request-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submit-request-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+}
+
+#requests-section h3 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.requests-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.request-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.request-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.request-content {
+    flex: 1;
+}
+
+.request-text {
+    font-size: 1rem !important;
+    color: #fff !important;
+    margin-bottom: 5px !important;
+    line-height: 1.4;
+}
+
+.request-meta {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.request-votes {
+    flex-shrink: 0;
+}
+
+.vote-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vote-btn:hover:not(.voted) {
+    background: rgba(74, 222, 128, 0.3);
+    border-color: #4ade80;
+    transform: scale(1.05);
+}
+
+.vote-btn.voted {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: #4ade80;
+    cursor: default;
+}
+
+.no-requests {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+@media (max-width: 600px) {
+    .request-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .request-votes {
+        align-self: flex-end;
     }
 }
