@@ -1306,6 +1306,13 @@ function initGameUI() {
     // Load pending challenges
     loadChallenges();
 
+    // Auto-refresh challenges every 10 seconds
+    setInterval(() => {
+        if (!state.isRunning) {
+            loadChallenges();
+        }
+    }, 10000);
+
     // Difficulty buttons handling
     const diffButtons = document.querySelectorAll('.diff-btn');
     diffButtons.forEach(btn => {
