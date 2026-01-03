@@ -3222,6 +3222,7 @@ function startGame() {
     cheatUsesLeft = 2;
     state.cheatMode = false;
     state.tongueFliesLeft = 0; // Reset tongue power
+    state.isPaused = false; // Reset pause state
     if (cheatTimer) {
         clearTimeout(cheatTimer);
         cheatTimer = null;
@@ -3233,6 +3234,7 @@ function startGame() {
     // Hide overlays
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('pause-screen').classList.add('hidden');
 
     updateHUD();
     startMusic();

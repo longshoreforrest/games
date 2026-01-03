@@ -54,7 +54,7 @@ body {
 
 /* Pause Button */
 #pause-btn {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
     width: 50px;
@@ -70,6 +70,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 100;
 }
 
 #pause-btn:hover {
