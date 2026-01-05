@@ -1258,6 +1258,148 @@ function applySkin(skinId) {
         if (typeof tailSegments !== 'undefined') {
             tailSegments.forEach(seg => { if (seg) seg.visible = false; });
         }
+    } else if (skinId === 'fish' && typeof lizardGroup !== 'undefined') {
+        // FISH SKIN - Matches kala.jpg from specs
+        const fishBlue = 0x3498DB; // Nice blue
+        const fishLight = 0x85C1E9; // Light blue belly
+        const fishOrange = 0xE67E22; // Orange fins
+
+        const fishMat = new THREE.MeshStandardMaterial({ color: fishBlue, roughness: 0.4, metalness: 0.2 });
+        const bellyMat = new THREE.MeshStandardMaterial({ color: fishLight, roughness: 0.5 });
+        const finMat = new THREE.MeshStandardMaterial({ color: fishOrange, roughness: 0.6, side: THREE.DoubleSide });
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+
+        const fish = new THREE.Group();
+
+        // BODY - oval fish shape
+        const body = new THREE.Mesh(
+            new THREE.SphereGeometry(0.4, 20, 16),
+            fishMat
+        );
+        body.position.set(0, 0.6, 0);
+        body.scale.set(0.8, 0.7, 1.5);
+        fish.add(body);
+
+        // BELLY - lighter underside
+        const belly = new THREE.Mesh(
+            new THREE.SphereGeometry(0.35, 16, 12),
+            bellyMat
+        );
+        belly.position.set(0, 0.52, 0);
+        belly.scale.set(0.7, 0.5, 1.3);
+        fish.add(belly);
+
+        // HEAD area (front of fish)
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.25, 14, 14),
+            fishMat
+        );
+        head.position.set(0, 0.62, 0.55);
+        head.scale.set(0.9, 0.85, 0.8);
+        fish.add(head);
+
+        // EYES
+        [1, -1].forEach(side => {
+            const eye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 12, 12),
+                eyeMat
+            );
+            eye.position.set(side * 0.18, 0.7, 0.65);
+            fish.add(eye);
+
+            const pupil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.04, 10, 10),
+                pupilMat
+            );
+            pupil.position.set(side * 0.2, 0.7, 0.71);
+            fish.add(pupil);
+        });
+
+        // MOUTH
+        const mouth = new THREE.Mesh(
+            new THREE.TorusGeometry(0.06, 0.015, 8, 16, Math.PI),
+            pupilMat
+        );
+        mouth.rotation.x = Math.PI / 2;
+        mouth.rotation.z = Math.PI;
+        mouth.position.set(0, 0.55, 0.78);
+        fish.add(mouth);
+
+        // TAIL FIN - Two lobes (V-shape like real fish)
+        // Tail base
+        const tailBase = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.12, 0.08, 0.3, 8),
+            fishMat
+        );
+        tailBase.rotation.x = Math.PI / 2;
+        tailBase.position.set(0, 0.58, -0.55);
+        fish.add(tailBase);
+
+        // Upper tail lobe
+        const tailUpper = new THREE.Mesh(
+            new THREE.ConeGeometry(0.18, 0.45, 6),
+            finMat
+        );
+        tailUpper.rotation.x = Math.PI / 2 + 0.5;
+        tailUpper.position.set(0, 0.75, -0.85);
+        tailUpper.scale.set(0.25, 1, 0.8);
+        fish.add(tailUpper);
+
+        // Lower tail lobe
+        const tailLower = new THREE.Mesh(
+            new THREE.ConeGeometry(0.18, 0.45, 6),
+            finMat
+        );
+        tailLower.rotation.x = Math.PI / 2 - 0.5;
+        tailLower.position.set(0, 0.42, -0.85);
+        tailLower.scale.set(0.25, 1, 0.8);
+        fish.add(tailLower);
+
+        // DORSAL FIN (top)
+        const dorsalFin = new THREE.Mesh(
+            new THREE.ConeGeometry(0.15, 0.4, 4),
+            finMat
+        );
+        dorsalFin.position.set(0, 1.0, 0);
+        dorsalFin.rotation.z = 0;
+        dorsalFin.scale.set(0.3, 1, 1.5);
+        fish.add(dorsalFin);
+
+        // SIDE FINS (pectoral)
+        [1, -1].forEach(side => {
+            const sideFin = new THREE.Mesh(
+                new THREE.ConeGeometry(0.12, 0.25, 4),
+                finMat
+            );
+            sideFin.position.set(side * 0.3, 0.5, 0.2);
+            sideFin.rotation.z = side * -0.8;
+            sideFin.rotation.x = 0.3;
+            sideFin.scale.set(0.4, 1, 1);
+            fish.add(sideFin);
+        });
+
+        // SCALES pattern (decorative stripes)
+        for (let i = 0; i < 3; i++) {
+            const stripe = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.02, 0.08),
+                bellyMat
+            );
+            stripe.position.set(0, 0.65, -0.2 + i * 0.25);
+            fish.add(stripe);
+        }
+
+        fish.position.set(0, 0, 0.1);
+        lizardGroup.add(fish);
+        monkeyParts.push(fish);
+
+        // Hide lizard
+        if (typeof hips !== 'undefined' && hips) hips.visible = false;
+        if (typeof chest !== 'undefined' && chest) chest.visible = false;
+        if (typeof headGroup !== 'undefined') headGroup.visible = false;
+        if (typeof tailSegments !== 'undefined') {
+            tailSegments.forEach(seg => { if (seg) seg.visible = false; });
+        }
     } else {
         // Show lizard parts for normal skins
         if (typeof hips !== 'undefined' && hips) hips.visible = true;
