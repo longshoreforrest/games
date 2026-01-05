@@ -520,6 +520,19 @@ document.addEventListener('keypress', (e) => {
             showCheatNotification('🐵 Sinulla on jo apina-skin!');
         }
     }
+
+    // fisuu cheat - unlock fish skin
+    if (cheatBuffer.includes('fisuu')) {
+        cheatBuffer = '';
+        if (!shopData.ownedSkins.includes('fish')) {
+            shopData.ownedSkins.push('fish');
+            saveShopData();
+            renderShopUI();
+            showCheatNotification('🐟 Kala-skin avattu!');
+        } else {
+            showCheatNotification('🐟 Sinulla on jo kala-skin!');
+        }
+    }
 });
 
 function showCheatNotification(message) {
@@ -1153,11 +1166,107 @@ function applySkin(skinId) {
         if (typeof hips !== 'undefined' && hips) hips.visible = false;
         if (typeof chest !== 'undefined' && chest) chest.visible = false;
         if (typeof headGroup !== 'undefined') headGroup.visible = false;
+    } else if (skinId === 'classic' && typeof lizardGroup !== 'undefined') {
+        // CLASSIC SKIN - Matches patukka lisko.jpeg exactly
+        const mainGreen = 0x2ECC40; // Bright lime green
+        const mainMat = new THREE.MeshStandardMaterial({
+            color: mainGreen,
+            roughness: 0.4,
+            metalness: 0.1
+        });
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+
+        const stickLizard = new THREE.Group();
+
+        // BODY - cylinder shape (compatible with all THREE.js versions)
+        const body = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.28, 0.28, 1.2, 16),
+            mainMat
+        );
+        body.rotation.x = Math.PI / 2;
+        body.position.set(0, 0.55, 0);
+        stickLizard.add(body);
+
+        // HEAD - large sphere slightly in front
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.3, 16, 16),
+            mainMat
+        );
+        head.position.set(0, 0.58, 0.7);
+        stickLizard.add(head);
+
+        // EYES - big round eyes on sides (like image)
+        [1, -1].forEach(side => {
+            // White eye
+            const eye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 12, 12),
+                eyeMat
+            );
+            eye.position.set(side * 0.2, 0.7, 0.85);
+            stickLizard.add(eye);
+
+            // Black pupil
+            const pupil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05, 10, 10),
+                pupilMat
+            );
+            pupil.position.set(side * 0.22, 0.7, 0.93);
+            stickLizard.add(pupil);
+        });
+
+        // TAIL - long tapered (like image)
+        const tail = new THREE.Mesh(
+            new THREE.ConeGeometry(0.15, 1.5, 8),
+            mainMat
+        );
+        tail.rotation.x = -Math.PI / 2;
+        tail.position.set(0, 0.52, -1.2);
+        stickLizard.add(tail);
+
+        // LEGS - 4 short stubby legs (like image)
+        // Front legs
+        [1, -1].forEach(side => {
+            const frontLeg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.05, 0.35, 8),
+                mainMat
+            );
+            frontLeg.position.set(side * 0.25, 0.3, 0.25);
+            frontLeg.rotation.z = side * 0.6;
+            stickLizard.add(frontLeg);
+        });
+
+        // Back legs
+        [1, -1].forEach(side => {
+            const backLeg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.05, 0.35, 8),
+                mainMat
+            );
+            backLeg.position.set(side * 0.25, 0.3, -0.3);
+            backLeg.rotation.z = side * 0.5;
+            stickLizard.add(backLeg);
+        });
+
+        stickLizard.position.set(0, 0, 0);
+        lizardGroup.add(stickLizard);
+        monkeyParts.push(stickLizard);
+
+        // Hide realistic lizard
+        if (typeof hips !== 'undefined' && hips) hips.visible = false;
+        if (typeof chest !== 'undefined' && chest) chest.visible = false;
+        if (typeof headGroup !== 'undefined') headGroup.visible = false;
+        if (typeof tailSegments !== 'undefined') {
+            tailSegments.forEach(seg => { if (seg) seg.visible = false; });
+        }
     } else {
-        // Show lizard parts for non-monkey skins
+        // Show lizard parts for normal skins
         if (typeof hips !== 'undefined' && hips) hips.visible = true;
         if (typeof chest !== 'undefined' && chest) chest.visible = true;
         if (typeof headGroup !== 'undefined') headGroup.visible = true;
+        if (typeof tail !== 'undefined' && tail) tail.visible = true;
+        if (typeof tailSegments !== 'undefined') {
+            tailSegments.forEach(seg => { if (seg) seg.visible = true; });
+        }
     }
 }
 
