@@ -424,8 +424,8 @@ let cheatBuffer = '';
 let cheatTimer = null;
 let cheatUsesLeft = 2; // Can only use cheat 2 times per game
 document.addEventListener('keypress', (e) => {
-    cheatBuffer += e.key;
-    if (cheatBuffer.length > 15) cheatBuffer = cheatBuffer.slice(-15); // Longer buffer for paraslisko
+    cheatBuffer += e.key.toLowerCase(); // Always lowercase for case-insensitive cheats
+    if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20); // Longer buffer for viudevaude
 
     // matias1 cheat - boost power-ups
     if (cheatBuffer.includes('matias1')) {
@@ -506,6 +506,19 @@ document.addEventListener('keypress', (e) => {
             state.speed /= 2;
             showCheatNotification('🚀 Nopeus palautui!');
         }, 10000);
+    }
+
+    // viudevaude cheat - unlock monkey skin
+    if (cheatBuffer.includes('viudevaude')) {
+        cheatBuffer = '';
+        if (!shopData.ownedSkins.includes('monkey')) {
+            shopData.ownedSkins.push('monkey');
+            saveShopData();
+            renderShopUI();
+            showCheatNotification('🐵 Apina-skin avattu!');
+        } else {
+            showCheatNotification('🐵 Sinulla on jo apina-skin!');
+        }
     }
 });
 
@@ -852,6 +865,10 @@ function equipSkin(skinId) {
 }
 
 // Apply skin colors to lizard (will be connected to lizard materials later)
+// Monkey parts storage for toggling
+let monkeyParts = [];
+let snoutVisible = true;
+
 function applySkin(skinId) {
     const skin = SKINS[skinId];
     if (!skin || typeof scaleMaterial === 'undefined') return;
@@ -868,7 +885,282 @@ function applySkin(skinId) {
         scaleMaterial.emissive.setHex(0x000000);
         scaleMaterial.emissiveIntensity = 0;
     }
+
+    // Remove old monkey parts if any
+    monkeyParts.forEach(part => {
+        if (part.parent) part.parent.remove(part);
+    });
+    monkeyParts = [];
+
+    // Control visibility of ALL lizard parts
+    const isMonkey = (skinId === 'monkey');
+
+    // Hide/show lizard specific parts
+    if (typeof snoutMesh !== 'undefined' && snoutMesh) snoutMesh.visible = !isMonkey;
+    if (typeof jawMesh !== 'undefined' && jawMesh) jawMesh.visible = !isMonkey;
+    if (typeof tail !== 'undefined' && tail) tail.visible = !isMonkey;
+    if (typeof tailSegments !== 'undefined') {
+        tailSegments.forEach(seg => { if (seg) seg.visible = !isMonkey; });
+    }
+    // Hide lizard head parts
+    if (typeof headGroup !== 'undefined') {
+        headGroup.children.forEach(child => {
+            // Only hide default lizard parts, not our monkey parts
+            if (!monkeyParts.includes(child)) {
+                child.visible = !isMonkey;
+            }
+        });
+    }
+    // Hide/restore legs
+    if (typeof legs !== 'undefined') {
+        legs.forEach(leg => { if (leg) leg.visible = !isMonkey; });
+    }
+
+    // Restore body scale for non-monkey
+    if (!isMonkey) {
+        if (typeof hips !== 'undefined' && hips) hips.scale.set(1, 1, 1);
+        if (typeof chest !== 'undefined' && chest) chest.scale.set(1, 1, 1);
+    }
+
+    // Special features for monkey skin
+    if (isMonkey && typeof lizardGroup !== 'undefined') {
+        // CARTOONISH MONKEY - Curious George style!
+        const furColor = 0xA0522D; // Sienna brown
+        const faceColor = 0xFFDFC4; // Peach
+        const pinkColor = 0xFFB6C1; // Pink
+
+        const furMat = new THREE.MeshStandardMaterial({ color: furColor, roughness: 0.9 });
+        const faceMat = new THREE.MeshStandardMaterial({ color: faceColor, roughness: 0.6 });
+        const pinkMat = new THREE.MeshStandardMaterial({ color: pinkColor, roughness: 0.7 });
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+
+        const monkey = new THREE.Group();
+
+        // ===== REFINED HEAD =====
+        const headSize = 0.4; // Smaller head
+
+        // Main head sphere (fur)
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(headSize, 24, 24),
+            furMat
+        );
+        head.position.set(0, 0.85, 0.12);
+        head.scale.set(1, 0.95, 0.9);
+        monkey.add(head);
+
+        // Face area (heart-shape, lighter)
+        const face = new THREE.Mesh(
+            new THREE.SphereGeometry(0.35, 20, 20),
+            faceMat
+        );
+        face.position.set(0, 0.78, 0.28);
+        face.scale.set(1, 0.95, 0.45);
+        monkey.add(face);
+
+        // ===== EARS (Mickey Mouse style - big round) =====
+        [1, -1].forEach(side => {
+            // Big outer ear
+            const ear = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2, 18, 18),
+                furMat
+            );
+            ear.position.set(side * 0.42, 0.88, -0.1);
+            ear.scale.set(0.25, 0.9, 0.7);
+            monkey.add(ear);
+
+            // Pink inner ear
+            const innerEar = new THREE.Mesh(
+                new THREE.SphereGeometry(0.14, 16, 16),
+                pinkMat
+            );
+            innerEar.position.set(side * 0.44, 0.88, -0.04);
+            innerEar.scale.set(0.18, 0.65, 0.5);
+            monkey.add(innerEar);
+        });
+
+        // ===== EYES =====
+        [1, -1].forEach(side => {
+            // Eye socket
+            const eyeSocket = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0x8B7355, roughness: 0.9 })
+            );
+            eyeSocket.position.set(side * 0.16, 0.98, 0.42);
+            eyeSocket.scale.set(1.1, 1.2, 0.4);
+            monkey.add(eyeSocket);
+
+            // Eye white
+            const eyeWhite = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 14, 14),
+                whiteMat
+            );
+            eyeWhite.position.set(side * 0.16, 0.98, 0.45);
+            eyeWhite.scale.set(1, 1.1, 0.5);
+            monkey.add(eyeWhite);
+
+            // Iris
+            const iris = new THREE.Mesh(
+                new THREE.SphereGeometry(0.045, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4A3728 })
+            );
+            iris.position.set(side * 0.16, 0.98, 0.5);
+            monkey.add(iris);
+
+            // Pupil
+            const pupil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.025, 10, 10),
+                blackMat
+            );
+            pupil.position.set(side * 0.16, 0.98, 0.52);
+            monkey.add(pupil);
+
+            // Eye shine
+            const shine = new THREE.Mesh(
+                new THREE.SphereGeometry(0.012, 8, 8),
+                whiteMat
+            );
+            shine.position.set(side * 0.14, 1.0, 0.53);
+            monkey.add(shine);
+
+            // Eyelid
+            const eyelid = new THREE.Mesh(
+                new THREE.SphereGeometry(0.09, 12, 12, 0, Math.PI * 2, 0, Math.PI / 3),
+                faceMat
+            );
+            eyelid.position.set(side * 0.16, 1.04, 0.43);
+            eyelid.rotation.x = -0.2;
+            eyelid.scale.set(1, 0.5, 0.4);
+            monkey.add(eyelid);
+        });
+
+        // Muzzle/snout
+        const muzzle = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2, 14, 14),
+            faceMat
+        );
+        muzzle.position.set(0, 0.72, 0.5);
+        muzzle.scale.set(1.1, 0.75, 0.75);
+        monkey.add(muzzle);
+
+        // Nose
+        const nose = new THREE.Mesh(
+            new THREE.SphereGeometry(0.06, 10, 10),
+            pinkMat
+        );
+        nose.position.set(0, 0.76, 0.68);
+        nose.scale.set(1.2, 0.75, 0.55);
+        monkey.add(nose);
+
+        // Nostrils
+        [1, -1].forEach(side => {
+            const nostril = new THREE.Mesh(
+                new THREE.SphereGeometry(0.025, 8, 8),
+                blackMat
+            );
+            nostril.position.set(side * 0.05, 0.77, 0.87);
+            monkey.add(nostril);
+        });
+
+        // Smile
+        const smile = new THREE.Mesh(
+            new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI),
+            blackMat
+        );
+        smile.rotation.x = Math.PI / 2;
+        smile.rotation.z = Math.PI;
+        smile.position.set(0, 0.62, 0.7);
+        monkey.add(smile);
+
+        // ===== SMALL BODY =====
+        const bodyG = new THREE.Mesh(
+            new THREE.SphereGeometry(0.35, 14, 14),
+            furMat
+        );
+        bodyG.position.set(0, 0.25, 0);
+        bodyG.scale.set(1, 1.1, 0.9);
+        monkey.add(bodyG);
+
+        // Belly
+        const belly = new THREE.Mesh(
+            new THREE.SphereGeometry(0.28, 12, 12),
+            faceMat
+        );
+        belly.position.set(0, 0.22, 0.12);
+        belly.scale.set(0.9, 1, 0.7);
+        monkey.add(belly);
+
+        // ===== LONG ARMS =====
+        [1, -1].forEach(side => {
+            // Arm
+            const arm = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.05, 0.6, 8),
+                furMat
+            );
+            arm.position.set(side * 0.4, 0.1, 0.1);
+            arm.rotation.z = side * 0.6;
+            monkey.add(arm);
+
+            // Hand
+            const hand = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 10, 10),
+                faceMat
+            );
+            hand.position.set(side * 0.6, -0.15, 0.15);
+            monkey.add(hand);
+        });
+
+        // ===== SHORT LEGS =====
+        [1, -1].forEach(side => {
+            const leg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.07, 0.06, 0.3, 8),
+                furMat
+            );
+            leg.position.set(side * 0.18, -0.1, 0);
+            monkey.add(leg);
+
+            const foot = new THREE.Mesh(
+                new THREE.SphereGeometry(0.07, 10, 10),
+                faceMat
+            );
+            foot.position.set(side * 0.18, -0.28, 0.05);
+            foot.scale.set(0.8, 0.5, 1.3);
+            monkey.add(foot);
+        });
+
+        // ===== CURLY TAIL =====
+        for (let i = 0; i < 10; i++) {
+            const seg = new THREE.Mesh(
+                new THREE.SphereGeometry(0.04 - i * 0.003, 8, 8),
+                furMat
+            );
+            const angle = i * 0.5;
+            seg.position.set(
+                Math.sin(angle) * 0.12,
+                0.2 - i * 0.03,
+                -0.35 - i * 0.04 + Math.cos(angle) * 0.06
+            );
+            monkey.add(seg);
+        }
+
+        // Position and scale monkey - raised up from ground
+        monkey.position.set(0, 0.3, 0.15);
+        monkey.scale.set(1.0, 1.0, 1.0);
+        lizardGroup.add(monkey);
+        monkeyParts.push(monkey);
+
+        // Hide ALL lizard parts
+        if (typeof hips !== 'undefined' && hips) hips.visible = false;
+        if (typeof chest !== 'undefined' && chest) chest.visible = false;
+        if (typeof headGroup !== 'undefined') headGroup.visible = false;
+    } else {
+        // Show lizard parts for non-monkey skins
+        if (typeof hips !== 'undefined' && hips) hips.visible = true;
+        if (typeof chest !== 'undefined' && chest) chest.visible = true;
+        if (typeof headGroup !== 'undefined') headGroup.visible = true;
+    }
 }
+
 
 // Update coins display in UI
 function updateCoinsDisplay() {
