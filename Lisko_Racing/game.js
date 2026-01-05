@@ -3823,6 +3823,7 @@ async function handleRegister() {
 
         const hashedPassword = hashPassword(password);
 
+        // Create user account
         await fetch(`${FIREBASE_DB_URL}/users/${userId}.json`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -3833,9 +3834,41 @@ async function handleRegister() {
             })
         });
 
-        showCheatNotification(t('registerSuccess'));
-        // Auto login
-        handleLogin();
+        // NEW: Upload current local shop data to cloud for new account
+        // Get any existing local data (from anonymous play)
+        let localShop = { totalFlies: 0, ownedSkins: ['default'], equippedSkin: 'default' };
+        try {
+            const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
+            if (globalSaved) {
+                const parsed = JSON.parse(globalSaved);
+                localShop = { ...localShop, ...parsed };
+            }
+        } catch (e) { }
+
+        // Upload to cloud
+        await fetch(`${FIREBASE_DB_URL}/userData/${userId}/shop.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(localShop)
+        });
+
+        // Set current player and shop data
+        currentPlayerName = username;
+        shopData = localShop;
+        localStorage.setItem(AUTH_KEY, JSON.stringify({ username: currentPlayerName, loginTime: Date.now() }));
+
+        // Save to user-specific localStorage
+        const userKey = `${SHOP_DATA_KEY}_${userId}`;
+        localStorage.setItem(userKey, JSON.stringify(shopData));
+
+        updateAuthUI();
+        renderShopUI();
+        updateCoinsDisplay();
+        loadFriends();
+        loadChallenges();
+        registerPlayer(currentPlayerName);
+
+        showCheatNotification(`✅ Tili luotu! ${shopData.totalFlies} kärpästä tallennettu!`);
     } catch (e) {
         console.error(e);
         showCheatNotification('Error!');
@@ -3868,16 +3901,36 @@ async function handleLogin() {
         const hashedPassword = hashPassword(password);
 
         if (userData.password === hashedPassword) {
-            // Success
+            // Success - set user
             currentPlayerName = userData.username;
             localStorage.setItem(AUTH_KEY, JSON.stringify({ username: currentPlayerName, loginTime: Date.now() }));
+
+            // Load shop data from cloud (overwriting local)
+            const playerId = getPlayerId(currentPlayerName);
+            try {
+                const shopResponse = await fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`);
+                const cloudShop = await shopResponse.json();
+
+                if (cloudShop && cloudShop.totalFlies !== undefined) {
+                    // Use cloud data
+                    shopData.totalFlies = cloudShop.totalFlies;
+                    shopData.ownedSkins = cloudShop.ownedSkins || ['default'];
+                    shopData.equippedSkin = cloudShop.equippedSkin || 'default';
+                }
+                // Update local cache
+                const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+                localStorage.setItem(userKey, JSON.stringify(shopData));
+            } catch (e) {
+                console.log('Could not load cloud shop data:', e);
+            }
+
             updateAuthUI();
             loadFriends();
             loadChallenges();
-            loadShopData();
+            renderShopUI();
+            updateCoinsDisplay();
             showCheatNotification(`${t('loggedInAs')} ${currentPlayerName}`);
 
-            // Register player index for search
             registerPlayer(currentPlayerName);
         } else {
             showCheatNotification(t('loginError'));
