@@ -428,6 +428,13 @@ button:active {
     display: inline-block;
 }
 
+.auth-buttons-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .hidden {
     display: none !important;
 }

@@ -773,7 +773,7 @@ async function loadShopData() {
 }
 
 // Save shop data to localStorage AND Firebase (User Specific)
-function saveShopData() {
+async function saveShopData() {
     if (!currentPlayerName) return;
 
     try {
@@ -782,13 +782,36 @@ function saveShopData() {
         localStorage.setItem(userKey, JSON.stringify(shopData));
 
         // Also save to Firebase for cross-device sync
-        fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`, {
+        await fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(shopData)
-        }).catch(e => console.log('Could not sync to Firebase:', e));
+        });
     } catch (e) {
-        console.log('Could not save shop data:', e);
+        console.log('Could not save/sync shop data:', e);
+    }
+}
+
+// Manual sync function - forces upload to Firebase
+async function syncToCloud() {
+    if (!currentPlayerName) {
+        showCheatNotification('Kirjaudu ensin sisään!');
+        return;
+    }
+
+    showCheatNotification('☁️ Synkronoidaan...');
+
+    try {
+        const playerId = getPlayerId(currentPlayerName);
+        await fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(shopData)
+        });
+        showCheatNotification(`☁️ Synkronoitu! ${shopData.totalFlies} kärpästä pilvessä!`);
+    } catch (e) {
+        showCheatNotification('❌ Synkronointi epäonnistui!');
+        console.error(e);
     }
 }
 
@@ -4248,3 +4271,4 @@ animate();
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.logoutUser = logoutUser;
+window.syncToCloud = syncToCloud;

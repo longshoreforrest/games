@@ -61,8 +61,12 @@
                     <!-- Logged In State -->
                     <div id="logged-in-state" class="hidden">
                         <p><span id="logged-in-label">Kirjautuneena:</span> <strong id="current-username"></strong></p>
-                        <button id="logout-btn" onclick="logoutUser()" class="secondary-btn small">Kirjaudu
-                            ulos</button>
+                        <div class="auth-buttons-row">
+                            <button type="button" id="sync-btn" onclick="syncToCloud()" class="secondary-btn small">☁️
+                                Synkronoi</button>
+                            <button type="button" id="logout-btn" onclick="logoutUser()"
+                                class="secondary-btn small">Kirjaudu ulos</button>
+                        </div>
                     </div>
                 </div>
 
