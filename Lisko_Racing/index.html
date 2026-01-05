@@ -45,9 +45,25 @@
                 <p class="controls">Ohjaus: ← → tai A D</p>
                 <p class="controls mobile-hint">📱 Pyyhkäise tai käytä nappeja</p>
 
-                <div id="player-name-section">
-                    <label for="player-name">Pelaajan nimi:</label>
-                    <input type="text" id="player-name" maxlength="15" placeholder="Nimesi">
+                <div id="auth-section">
+                    <!-- Login Form -->
+                    <div id="login-form">
+                        <h2 id="auth-title">Kirjaudu sisään</h2>
+                        <input type="text" id="auth-username" placeholder="Käyttäjätunnus" maxlength="15">
+                        <input type="password" id="auth-password" placeholder="Salasana">
+                        <div class="auth-buttons">
+                            <button type="button" id="login-btn" onclick="handleLogin()">Kirjaudu</button>
+                            <button type="button" id="register-btn" onclick="handleRegister()" class="secondary-btn">Luo
+                                tili</button>
+                        </div>
+                    </div>
+
+                    <!-- Logged In State -->
+                    <div id="logged-in-state" class="hidden">
+                        <p><span id="logged-in-label">Kirjautuneena:</span> <strong id="current-username"></strong></p>
+                        <button id="logout-btn" onclick="logoutUser()" class="secondary-btn small">Kirjaudu
+                            ulos</button>
+                    </div>
                 </div>
 
                 <div id="difficulty-selection">

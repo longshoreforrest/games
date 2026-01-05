@@ -348,20 +348,33 @@ button:active {
     }
 }
 
-/* Player Name Input */
-#player-name-section {
+/* ============ AUTHENTICATION ============ */
+#auth-section {
     margin: 20px 0;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#player-name-section label {
-    display: block;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1rem;
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
 }
 
-#player-name {
-    width: 200px;
+#auth-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 10px !important;
+    background: none !important;
+    color: #fff !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+#auth-section input {
+    width: 100%;
     padding: 12px 20px;
     font-size: 1.1rem;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -373,8 +386,55 @@ button:active {
     transition: border-color 0.3s ease;
 }
 
-#player-name:focus {
+#auth-section input:focus {
     border-color: #4ade80;
+}
+
+#auth-section input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#auth-section button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+#logged-in-state {
+    text-align: center;
+}
+
+#logged-in-state p {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+#logged-in-state strong {
+    color: #4ade80;
+}
+
+.secondary-btn.small {
+    padding: 8px 16px;
+    font-size: 1rem;
+    width: auto;
+    display: inline-block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Player Name Input (Legacy - hidden/removed mostly, but keeping style just in case) */
+#player-name-section {
+    display: none;
 }
 
 #player-name::placeholder {
@@ -1036,6 +1096,109 @@ button:active {
     .skin-card button {
         font-size: 0.7rem;
         padding: 6px 8px;
+    }
+}
+
+/* ============ RARITY SYSTEM ============ */
+.rarity-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+/* Common Rarity - Grey */
+.rarity-badge.rarity-common {
+    background: rgba(150, 150, 150, 0.3);
+    color: #aaa;
+    border: 1px solid rgba(150, 150, 150, 0.4);
+}
+
+.skin-card.rarity-common {
+    border-color: rgba(150, 150, 150, 0.2);
+}
+
+/* Rare Rarity - Blue */
+.rarity-badge.rarity-rare {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(96, 165, 250, 0.3));
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.5);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.skin-card.rarity-rare {
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+}
+
+.skin-card.rarity-rare:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Mythic Rarity - Gold/Purple with animation */
+.rarity-badge.rarity-mythic {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(168, 85, 247, 0.4));
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    animation: mythicGlow 2s ease-in-out infinite;
+}
+
+.skin-card.rarity-mythic {
+    border: 2px solid transparent;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+        linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(168, 85, 247, 0.3));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), 0 0 30px rgba(168, 85, 247, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.skin-card.rarity-mythic::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.1) 50%,
+            transparent 60%);
+    animation: mythicShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.skin-card.rarity-mythic:hover {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.25);
+    transform: translateY(-5px) scale(1.02);
+}
+
+@keyframes mythicGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+    }
+}
+
+@keyframes mythicShine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+
+    50%,
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
     }
 }
 

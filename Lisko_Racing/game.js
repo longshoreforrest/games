@@ -11,7 +11,20 @@ const TRANSLATIONS = {
         subtitle: 'Väistele esteitä ja kerää kärpäsiä!',
         controls: 'Ohjaus: ← → tai A D',
         mobileHint: '📱 Pyyhkäise tai käytä nappeja',
-        playerNameLabel: 'Pelaajan nimi:',
+        // Auth
+        authTitle: 'Kirjaudu sisään',
+        login: 'Kirjaudu',
+        register: 'Luo tili',
+        username: 'Käyttäjätunnus',
+        password: 'Salasana',
+        logout: 'Kirjaudu ulos',
+        loggedInAs: 'Kirjautuneena:',
+        loginError: 'Väärä käyttäjätunnus tai salasana!',
+        registerError: 'Käyttäjätunnus on jo varattu!',
+        registerSuccess: 'Tili luotu! Kirjaudu sisään.',
+        authRequired: 'Kirjaudu sisään pelataksesi!',
+        processing: 'Käsitellään...',
+        guest: 'Vieras',
         playerNamePlaceholder: 'Nimesi',
         difficultyTitle: 'Valitse vaikeustaso:',
         easy: 'Helppo 🟢',
@@ -97,14 +110,33 @@ const TRANSLATIONS = {
         skinStealth: 'Varjolisko',
         skinRainbow: 'Sateenkaarilisko',
         skinDiamond: 'Timanttilisko',
-        skinClassic: 'Klassikko Lisko'
+        skinClassic: 'Klassikko Lisko',
+        skinMonkey: 'Apina',
+        skinFish: 'Kala',
+        // Rarity names
+        rarityCommon: 'Yleinen',
+        rarityRare: 'Harvinainen',
+        rarityMythic: 'Myyttinen'
     },
     sv: {
         title: '🦎 ÖDLA RACING',
         subtitle: 'Undvik hinder och samla flugor!',
         controls: 'Styrning: ← → eller A D',
         mobileHint: '📱 Svep eller använd knapparna',
-        playerNameLabel: 'Spelarnamn:',
+        // Auth
+        authTitle: 'Logga in',
+        login: 'Logga in',
+        register: 'Skapa konto',
+        username: 'Användarnamn',
+        password: 'Lösenord',
+        logout: 'Logga ut',
+        loggedInAs: 'Inloggad som:',
+        loginError: 'Fel användarnamn eller lösenord!',
+        registerError: 'Användarnamnet är redan upptaget!',
+        registerSuccess: 'Konto skapat! Logga in.',
+        authRequired: 'Logga in för att spela!',
+        processing: 'Bearbetar...',
+        guest: 'Gäst',
         playerNamePlaceholder: 'Ditt namn',
         difficultyTitle: 'Välj svårighetsgrad:',
         easy: 'Lätt 🟢',
@@ -152,14 +184,49 @@ const TRANSLATIONS = {
         enterYourName: 'Ange först ditt eget namn!',
         friendsLeaderboard: '👥 Vänners resultat',
         vsYou: 'vs. du',
-        noFriendScores: 'Vänner har inga resultat ännu'
+        noFriendScores: 'Vänner har inga resultat ännu',
+        // Skin names
+        skinDefault: 'Grön Ödla',
+        skinGold: 'Guld Ödla',
+        skinPurple: 'Lila Ödla',
+        skinFire: 'Eldödla',
+        skinOcean: 'Havsödla',
+        skinIce: 'Isödla',
+        skinSunset: 'Solnedgång',
+        skinToxic: 'Giftödla',
+        skinNeon: 'Neonödla',
+        skinMidnight: 'Nattödla',
+        skinCandy: 'Godisödla',
+        skinStealth: 'Skuggödla',
+        skinRainbow: 'Regnbågsödla',
+        skinDiamond: 'Diamantödla',
+        skinClassic: 'Klassisk Ödla',
+        skinMonkey: 'Apa',
+        skinFish: 'Fisk',
+        // Rarity names
+        rarityCommon: 'Vanlig',
+        rarityRare: 'Sällsynt',
+        rarityMythic: 'Mytisk'
     },
     en: {
         title: '🦎 LIZARD RACING',
         subtitle: 'Dodge obstacles and collect flies!',
         controls: 'Controls: ← → or A D',
         mobileHint: '📱 Swipe or use buttons',
-        playerNameLabel: 'Player name:',
+        // Auth
+        authTitle: 'Sign In',
+        login: 'Login',
+        register: 'Register',
+        username: 'Username',
+        password: 'Password',
+        logout: 'Logout',
+        loggedInAs: 'Logged in as:',
+        loginError: 'Invalid username or password!',
+        registerError: 'Username already taken!',
+        registerSuccess: 'Account created! Please login.',
+        authRequired: 'Please login to play!',
+        processing: 'Processing...',
+        guest: 'Guest',
         playerNamePlaceholder: 'Your name',
         difficultyTitle: 'Select difficulty:',
         easy: 'Easy 🟢',
@@ -207,7 +274,29 @@ const TRANSLATIONS = {
         enterYourName: 'Enter your name first!',
         friendsLeaderboard: '👥 Friends\' scores',
         vsYou: 'vs. you',
-        noFriendScores: 'Friends have no scores yet'
+        noFriendScores: 'Friends have no scores yet',
+        // Skin names
+        skinDefault: 'Green Lizard',
+        skinGold: 'Golden Lizard',
+        skinPurple: 'Purple Lizard',
+        skinFire: 'Fire Lizard',
+        skinOcean: 'Ocean Lizard',
+        skinIce: 'Ice Lizard',
+        skinSunset: 'Sunset',
+        skinToxic: 'Toxic Lizard',
+        skinNeon: 'Neon Lizard',
+        skinMidnight: 'Midnight Lizard',
+        skinCandy: 'Candy Lizard',
+        skinStealth: 'Stealth Lizard',
+        skinRainbow: 'Rainbow Lizard',
+        skinDiamond: 'Diamond Lizard',
+        skinClassic: 'Classic Lizard',
+        skinMonkey: 'Monkey',
+        skinFish: 'Fish',
+        // Rarity names
+        rarityCommon: 'Common',
+        rarityRare: 'Rare',
+        rarityMythic: 'Mythic'
     }
 };
 
@@ -231,11 +320,8 @@ function updateLanguageUI() {
     const mobileHintEl = document.querySelector('#start-screen .mobile-hint');
     if (mobileHintEl) mobileHintEl.textContent = t('mobileHint');
 
-    const playerLabel = document.querySelector('label[for="player-name"]');
-    if (playerLabel) playerLabel.textContent = t('playerNameLabel');
-
-    const playerInput = document.getElementById('player-name');
-    if (playerInput) playerInput.placeholder = t('playerNamePlaceholder');
+    // Auth UI
+    updateAuthLanguage();
 
     const diffTitle = document.querySelector('#difficulty-selection > p');
     if (diffTitle) diffTitle.textContent = t('difficultyTitle');
@@ -330,6 +416,9 @@ const state = {
 let destroyerTimer = null;
 let destroyerUsesLeft = 2;
 
+// Speedup cheat variables
+let speedupUsesLeft = 2;
+
 // Cheat code detection
 let cheatBuffer = '';
 let cheatTimer = null;
@@ -395,6 +484,29 @@ document.addEventListener('keypress', (e) => {
             showCheatNotification('💥 Tuhoajatila päättyi!');
         }, 8000);
     }
+
+    // speedup cheat - double speed for 10 seconds
+    if (cheatBuffer.includes('speedup')) {
+        cheatBuffer = '';
+
+        // Check if uses remaining
+        if (speedupUsesLeft <= 0) {
+            showCheatNotification('🚨 Ei käyttökertoja jäljellä!');
+            return;
+        }
+
+        speedupUsesLeft--;
+
+        // Double the current speed
+        state.speed *= 2;
+        showCheatNotification(`🚀 SPEED x2! (10s) - ${speedupUsesLeft} käyttöä jäljellä`);
+
+        // After 10 seconds, halve the speed back
+        setTimeout(() => {
+            state.speed /= 2;
+            showCheatNotification('🚀 Nopeus palautui!');
+        }, 10000);
+    }
 });
 
 function showCheatNotification(message) {
@@ -447,12 +559,14 @@ const DIFFICULTIES = {
 const SHOP_DATA_KEY = 'lisko_racing_shop';
 const TOTAL_FLIES_KEY = 'lisko_racing_total_flies';
 
-// Skin definitions with prices and colors
+// Skin definitions with prices, colors and rarity
+// Rarity: 'common', 'rare', 'mythic'
 const SKINS = {
     default: {
         id: 'default',
         nameKey: 'skinDefault',
         price: 0,
+        rarity: 'common',
         colors: { skin: 0x2e8b57, belly: 0x90ee90, scale: 0x228b22 },
         owned: true // Always owned
     },
@@ -460,84 +574,114 @@ const SKINS = {
         id: 'gold',
         nameKey: 'skinGold',
         price: 100,
+        rarity: 'common',
         colors: { skin: 0xffd700, belly: 0xffec8b, scale: 0xdaa520 }
     },
     purple: {
         id: 'purple',
         nameKey: 'skinPurple',
         price: 150,
+        rarity: 'common',
         colors: { skin: 0x9932cc, belly: 0xdda0dd, scale: 0x800080 }
     },
     fire: {
         id: 'fire',
         nameKey: 'skinFire',
         price: 250,
+        rarity: 'common',
         colors: { skin: 0xff4500, belly: 0xffa500, scale: 0x8b0000 }
     },
     ocean: {
         id: 'ocean',
         nameKey: 'skinOcean',
         price: 350,
+        rarity: 'common',
         colors: { skin: 0x006994, belly: 0x40e0d0, scale: 0x004c70 }
     },
     ice: {
         id: 'ice',
         nameKey: 'skinIce',
         price: 500,
+        rarity: 'rare',
         colors: { skin: 0x00bfff, belly: 0xe0ffff, scale: 0x1e90ff }
     },
     sunset: {
         id: 'sunset',
         nameKey: 'skinSunset',
         price: 600,
+        rarity: 'rare',
         colors: { skin: 0xff6347, belly: 0xffd700, scale: 0xff4500 }
     },
     toxic: {
         id: 'toxic',
         nameKey: 'skinToxic',
         price: 750,
+        rarity: 'rare',
         colors: { skin: 0x00ff00, belly: 0xadff2f, scale: 0x32cd32, emissive: 0x00ff00 }
     },
     neon: {
         id: 'neon',
         nameKey: 'skinNeon',
         price: 1000,
+        rarity: 'rare',
         colors: { skin: 0x39ff14, belly: 0x00ff00, scale: 0x32cd32, emissive: 0x39ff14 }
     },
     midnight: {
         id: 'midnight',
         nameKey: 'skinMidnight',
         price: 1200,
+        rarity: 'rare',
         colors: { skin: 0x191970, belly: 0x483d8b, scale: 0x0d0d30 }
     },
     candy: {
         id: 'candy',
         nameKey: 'skinCandy',
         price: 1500,
+        rarity: 'rare',
         colors: { skin: 0xff69b4, belly: 0xffc0cb, scale: 0xff1493 }
     },
     stealth: {
         id: 'stealth',
         nameKey: 'skinStealth',
         price: 2000,
+        rarity: 'rare',
         colors: { skin: 0x2f2f2f, belly: 0x4a4a4a, scale: 0x1a1a1a }
     },
     rainbow: {
         id: 'rainbow',
         nameKey: 'skinRainbow',
         price: 2500,
+        rarity: 'mythic',
         colors: { skin: 0xff69b4, belly: 0x87ceeb, scale: 0x9370db, special: 'rainbow' }
     },
     diamond: {
         id: 'diamond',
         nameKey: 'skinDiamond',
         price: 3500,
+        rarity: 'mythic',
         colors: { skin: 0xb9f2ff, belly: 0xe0ffff, scale: 0x87ceeb, emissive: 0xb9f2ff }
+    },
+    monkey: {
+        id: 'monkey',
+        nameKey: 'skinMonkey',
+        icon: '🐵',
+        price: 4500,
+        rarity: 'mythic',
+        colors: { skin: 0x8B4513, belly: 0xDEB887, scale: 0x654321 }
+    },
+    fish: {
+        id: 'fish',
+        nameKey: 'skinFish',
+        icon: '🐟',
+        price: 4500,
+        rarity: 'mythic',
+        colors: { skin: 0x1E90FF, belly: 0x87CEEB, scale: 0x4169E1, emissive: 0x00BFFF }
     },
     classic: {
         id: 'classic',
         nameKey: 'skinClassic',
         price: 5000, // Most expensive - the original simple lizard!
+        rarity: 'mythic',
         colors: { skin: 0x00aa00, belly: 0x88ff88, scale: 0x006600, special: 'classic' }
     }
 };
@@ -549,29 +693,70 @@ let shopData = {
     equippedSkin: 'default'
 };
 
-// Load shop data from localStorage
+// Load shop data from localStorage (User Specific)
 function loadShopData() {
+    // Default state
+    shopData = {
+        totalFlies: 0,
+        ownedSkins: ['default'],
+        equippedSkin: 'default'
+    };
+
+    if (!currentPlayerName) return;
+
     try {
-        const saved = localStorage.getItem(SHOP_DATA_KEY);
-        if (saved) {
-            const parsed = JSON.parse(saved);
+        const playerId = getPlayerId(currentPlayerName);
+        const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+        const userSaved = localStorage.getItem(userKey);
+
+        if (userSaved) {
+            const parsed = JSON.parse(userSaved);
             shopData = { ...shopData, ...parsed };
-        }
-        // Also load total flies separately for backwards compatibility
-        const savedFlies = localStorage.getItem(TOTAL_FLIES_KEY);
-        if (savedFlies) {
-            shopData.totalFlies = parseInt(savedFlies) || 0;
+        } else {
+            // Migration: Check for legacy/anonymous data (old system before auth)
+            let migrated = false;
+
+            // Check old shop data
+            const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
+            if (globalSaved) {
+                try {
+                    const parsed = JSON.parse(globalSaved);
+                    shopData = { ...shopData, ...parsed };
+                    migrated = true;
+                } catch (e) { }
+            }
+
+            // Check old total flies key (separate storage)
+            const oldFlies = localStorage.getItem(TOTAL_FLIES_KEY);
+            if (oldFlies) {
+                const flies = parseInt(oldFlies) || 0;
+                if (flies > shopData.totalFlies) {
+                    shopData.totalFlies = flies;
+                    migrated = true;
+                }
+            }
+
+            // If we migrated data, save it to user profile
+            if (migrated) {
+                saveShopData();
+                showCheatNotification(`🎉 Vanha data siirretty! ${shopData.totalFlies} kärpästä!`);
+            }
         }
     } catch (e) {
         console.log('Could not load shop data:', e);
     }
+    renderShopUI();
+    updateCoinsDisplay();
 }
 
-// Save shop data to localStorage
+// Save shop data to localStorage (User Specific)
 function saveShopData() {
+    if (!currentPlayerName) return;
+
     try {
-        localStorage.setItem(SHOP_DATA_KEY, JSON.stringify(shopData));
-        localStorage.setItem(TOTAL_FLIES_KEY, shopData.totalFlies.toString());
+        const playerId = getPlayerId(currentPlayerName);
+        const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+        localStorage.setItem(userKey, JSON.stringify(shopData));
     } catch (e) {
         console.log('Could not save shop data:', e);
     }
@@ -654,6 +839,16 @@ function renderShopUI() {
     const container = document.getElementById('shop-section');
     if (!container) return;
 
+    // Get rarity translation key
+    const getRarityKey = (rarity) => {
+        switch (rarity) {
+            case 'common': return 'rarityCommon';
+            case 'rare': return 'rarityRare';
+            case 'mythic': return 'rarityMythic';
+            default: return 'rarityCommon';
+        }
+    };
+
     let html = `
         <h2>${t('shopTitle')}</h2>
         <p class="coins-display">🪰 ${t('yourCoins')} <strong id="total-coins">${shopData.totalFlies}</strong></p>
@@ -686,11 +881,14 @@ function renderShopUI() {
 
         const skinColor = `#${skin.colors.skin.toString(16).padStart(6, '0')}`;
         const bellyColor = `#${skin.colors.belly.toString(16).padStart(6, '0')}`;
+        const skinIcon = skin.icon || '🦎';
+        const rarityClass = `rarity-${skin.rarity || 'common'}`;
 
         html += `
-            <div class="skin-card ${isEquipped ? 'equipped' : ''} ${isOwned ? 'owned' : ''}">
+            <div class="skin-card ${isEquipped ? 'equipped' : ''} ${isOwned ? 'owned' : ''} ${rarityClass}">
+                <span class="rarity-badge ${rarityClass}">${t(getRarityKey(skin.rarity))}</span>
                 <div class="skin-preview" style="background: linear-gradient(135deg, ${skinColor}, ${bellyColor});">
-                    <span class="skin-icon">🦎</span>
+                    <span class="skin-icon">${skinIcon}</span>
                 </div>
                 <h4>${t(skin.nameKey)}</h4>
                 <button class="${buttonClass}" ${buttonAction}>${buttonText}</button>
@@ -716,8 +914,9 @@ const FIREBASE_DB_URL = 'https://lisko-racing-default-rtdb.europe-west1.firebase
 
 const LEADERBOARD_CACHE_KEY = 'lisko_racing_leaderboard_cache';
 const OLD_LEADERBOARD_KEY = 'lisko_racing_leaderboard'; // Old key to migrate from
-const PLAYER_NAME_KEY = 'lisko_racing_player_name';
-let currentPlayerName = localStorage.getItem(PLAYER_NAME_KEY) || '';
+const AUTH_KEY = 'lisko_racing_auth_session'; // Stores { username, token }
+let currentPlayerName = ''; // Set via auth system
+let isGuest = false;
 let leaderboardData = [];
 let isLoadingLeaderboard = false;
 let totalGamesPlayed = 0;
@@ -3524,8 +3723,224 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+// ============ AUTHENTICATION SYSTEM ============
+// Simple hash function (always uses same method for consistency)
+function hashPassword(password) {
+    // Simple deterministic hash that works everywhere
+    let hash = 0;
+    const salt = 'lisko_racing_2024';
+    const salted = salt + password + salt;
+    for (let i = 0; i < salted.length; i++) {
+        const char = salted.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    // Create longer hash
+    let result = Math.abs(hash).toString(16);
+    for (let j = 1; j <= 4; j++) {
+        let h2 = hash * j;
+        for (let i = 0; i < salted.length; i++) {
+            const char = salted.charCodeAt(i);
+            h2 = ((h2 << 5) - h2) + char * j;
+            h2 = h2 & h2;
+        }
+        result += Math.abs(h2).toString(16);
+    }
+    return result.padStart(32, '0');
+}
+
+async function handleRegister() {
+    const usernameInput = document.getElementById('auth-username');
+    const passwordInput = document.getElementById('auth-password');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+        showCheatNotification(t('loginError'));
+        return;
+    }
+
+    if (username.length < 3) {
+        showCheatNotification('Min 3 chars!');
+        return;
+    }
+
+    // Check if user exists
+    const userId = getPlayerId(username);
+    try {
+        showCheatNotification(t('processing'));
+        const check = await fetch(`${FIREBASE_DB_URL}/users/${userId}.json`);
+        const existing = await check.json();
+
+        if (existing) {
+            showCheatNotification(t('registerError'));
+            return;
+        }
+
+        const hashedPassword = hashPassword(password);
+
+        await fetch(`${FIREBASE_DB_URL}/users/${userId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                password: hashedPassword,
+                created: new Date().toISOString()
+            })
+        });
+
+        showCheatNotification(t('registerSuccess'));
+        // Auto login
+        handleLogin();
+    } catch (e) {
+        console.error(e);
+        showCheatNotification('Error!');
+    }
+}
+
+async function handleLogin() {
+    const usernameInput = document.getElementById('auth-username');
+    const passwordInput = document.getElementById('auth-password');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+        showCheatNotification(t('loginError'));
+        return;
+    }
+
+    showCheatNotification(t('processing'));
+
+    const userId = getPlayerId(username);
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/users/${userId}.json`);
+        const userData = await response.json();
+
+        if (!userData) {
+            showCheatNotification(t('loginError'));
+            return;
+        }
+
+        const hashedPassword = hashPassword(password);
+
+        if (userData.password === hashedPassword) {
+            // Success
+            currentPlayerName = userData.username;
+            localStorage.setItem(AUTH_KEY, JSON.stringify({ username: currentPlayerName, loginTime: Date.now() }));
+            updateAuthUI();
+            loadFriends();
+            loadChallenges();
+            loadShopData();
+            showCheatNotification(`${t('loggedInAs')} ${currentPlayerName}`);
+
+            // Register player index for search
+            registerPlayer(currentPlayerName);
+        } else {
+            showCheatNotification(t('loginError'));
+        }
+    } catch (e) {
+        console.error(e);
+        showCheatNotification('Network Error');
+    }
+}
+
+function logoutUser() {
+    currentPlayerName = '';
+    localStorage.removeItem(AUTH_KEY);
+    shopData = { totalFlies: 0, ownedSkins: ['default'], equippedSkin: 'default' }; // Reset shop
+    updateAuthUI();
+    document.getElementById('auth-password').value = '';
+}
+
+function checkAuthSession() {
+    const session = localStorage.getItem(AUTH_KEY);
+    if (session) {
+        try {
+            const data = JSON.parse(session);
+            // Simple session validity check
+            if (data.username) {
+                currentPlayerName = data.username;
+                updateAuthUI();
+                loadFriends();
+                loadChallenges();
+                registerPlayer(currentPlayerName); // Refresh last seen
+            } else {
+                updateAuthUI(); // Ensure UI is in correct state (logged out)
+            }
+        } catch (e) {
+            localStorage.removeItem(AUTH_KEY);
+            updateAuthUI();
+        }
+    } else {
+        updateAuthUI();
+    }
+}
+
+function updateAuthUI() {
+    const loginForm = document.getElementById('login-form');
+    const loggedInState = document.getElementById('logged-in-state');
+    const currentUsername = document.getElementById('current-username');
+    const startBtn = document.getElementById('start-btn');
+
+    if (currentPlayerName) {
+        if (loginForm) loginForm.classList.add('hidden');
+        if (loggedInState) loggedInState.classList.remove('hidden');
+        if (currentUsername) currentUsername.textContent = currentPlayerName;
+        // Enable start button
+        if (startBtn) {
+            startBtn.style.opacity = '1';
+            startBtn.style.cursor = 'pointer';
+            startBtn.style.pointerEvents = 'auto'; // Re-enable clicks
+            startBtn.textContent = t('startGame');
+            startBtn.disabled = false;
+        }
+    } else {
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (loggedInState) loggedInState.classList.add('hidden');
+        // Disable or change start button text
+        if (startBtn) {
+            startBtn.style.opacity = '0.5';
+            startBtn.style.cursor = 'not-allowed';
+            startBtn.style.pointerEvents = 'none'; // Disable clicks effectively
+            startBtn.textContent = t('authRequired');
+            // startBtn.disabled = true; // Use style disabled to keep it visible but greyed
+        }
+    }
+}
+
+function updateAuthLanguage() {
+    const authTitle = document.getElementById('auth-title');
+    if (authTitle) authTitle.textContent = t('authTitle');
+
+    const usernameInput = document.getElementById('auth-username');
+    if (usernameInput) usernameInput.placeholder = t('username');
+
+    const passwordInput = document.getElementById('auth-password');
+    if (passwordInput) passwordInput.placeholder = t('password');
+
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) loginBtn.textContent = t('login');
+
+    const registerBtn = document.getElementById('register-btn');
+    if (registerBtn) registerBtn.textContent = t('register');
+
+    const loggedInLabel = document.getElementById('logged-in-label');
+    if (loggedInLabel) loggedInLabel.textContent = t('loggedInAs');
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.textContent = t('logout');
+
+    updateAuthUI(); // Refresh button text
+}
+
+// ============ GAME STATE MANAGEMENT ============
 // ============ GAME STATE MANAGEMENT ============
 function startGame() {
+    if (!currentPlayerName) {
+        showCheatNotification(t('authRequired'));
+        return;
+    }
+
     state.score = 0;
 
     // Set speed based on difficulty
@@ -3761,6 +4176,13 @@ document.getElementById('quit-btn').addEventListener('click', quitGame);
 
 document.addEventListener('keydown', (e) => {
     if ((e.key === ' ' || e.key === 'Enter') && !state.isRunning) {
+        // Don't start if typing in input
+        if (document.activeElement.tagName === 'INPUT') return;
+
+        if (!currentPlayerName) {
+            showCheatNotification(t('authRequired'));
+            return;
+        }
         startGame();
     }
     // Escape to pause/resume
@@ -3773,6 +4195,14 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Add Enter key support for login inputs
+document.getElementById('auth-password')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+});
+document.getElementById('auth-username')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('auth-password').focus();
+});
+
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -3780,5 +4210,11 @@ window.addEventListener('resize', () => {
 });
 
 // ============ START ============
-
+initLanguageSelector(); // Initialize language
+checkAuthSession(); // Check login session
 animate();
+
+// Expose auth functions globally for HTML onclick handlers
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.logoutUser = logoutUser;
