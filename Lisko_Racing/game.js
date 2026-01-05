@@ -693,8 +693,8 @@ let shopData = {
     equippedSkin: 'default'
 };
 
-// Load shop data from localStorage (User Specific)
-function loadShopData() {
+// Load shop data from Firebase AND localStorage (User Specific)
+async function loadShopData() {
     // Default state
     shopData = {
         totalFlies: 0,
@@ -702,54 +702,77 @@ function loadShopData() {
         equippedSkin: 'default'
     };
 
-    if (!currentPlayerName) return;
+    if (!currentPlayerName) {
+        renderShopUI();
+        updateCoinsDisplay();
+        return;
+    }
+
+    const playerId = getPlayerId(currentPlayerName);
 
     try {
-        const playerId = getPlayerId(currentPlayerName);
-        const userKey = `${SHOP_DATA_KEY}_${playerId}`;
-        const userSaved = localStorage.getItem(userKey);
+        // Try to load from Firebase first (for cross-device sync)
+        const response = await fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`);
+        const firebaseData = await response.json();
 
-        if (userSaved) {
-            const parsed = JSON.parse(userSaved);
-            shopData = { ...shopData, ...parsed };
+        if (firebaseData && firebaseData.totalFlies !== undefined) {
+            shopData = { ...shopData, ...firebaseData };
+            // Also save to localStorage for offline access
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            localStorage.setItem(userKey, JSON.stringify(shopData));
         } else {
-            // Migration: Check for legacy/anonymous data (old system before auth)
-            let migrated = false;
+            // Fallback to localStorage
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            const userSaved = localStorage.getItem(userKey);
 
-            // Check old shop data
-            const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
-            if (globalSaved) {
-                try {
-                    const parsed = JSON.parse(globalSaved);
-                    shopData = { ...shopData, ...parsed };
-                    migrated = true;
-                } catch (e) { }
-            }
-
-            // Check old total flies key (separate storage)
-            const oldFlies = localStorage.getItem(TOTAL_FLIES_KEY);
-            if (oldFlies) {
-                const flies = parseInt(oldFlies) || 0;
-                if (flies > shopData.totalFlies) {
-                    shopData.totalFlies = flies;
-                    migrated = true;
-                }
-            }
-
-            // If we migrated data, save it to user profile
-            if (migrated) {
+            if (userSaved) {
+                const parsed = JSON.parse(userSaved);
+                shopData = { ...shopData, ...parsed };
+                // Sync to Firebase
                 saveShopData();
-                showCheatNotification(`🎉 Vanha data siirretty! ${shopData.totalFlies} kärpästä!`);
+            } else {
+                // Migration: Check for legacy/anonymous data
+                let migrated = false;
+                const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
+                if (globalSaved) {
+                    try {
+                        const parsed = JSON.parse(globalSaved);
+                        shopData = { ...shopData, ...parsed };
+                        migrated = true;
+                    } catch (e) { }
+                }
+                const oldFlies = localStorage.getItem(TOTAL_FLIES_KEY);
+                if (oldFlies) {
+                    const flies = parseInt(oldFlies) || 0;
+                    if (flies > shopData.totalFlies) {
+                        shopData.totalFlies = flies;
+                        migrated = true;
+                    }
+                }
+                if (migrated) {
+                    saveShopData();
+                    showCheatNotification(`🎉 Vanha data siirretty! ${shopData.totalFlies} kärpästä!`);
+                }
             }
         }
     } catch (e) {
-        console.log('Could not load shop data:', e);
+        console.log('Could not load shop data from Firebase, using localStorage:', e);
+        // Fallback to localStorage
+        try {
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            const userSaved = localStorage.getItem(userKey);
+            if (userSaved) {
+                const parsed = JSON.parse(userSaved);
+                shopData = { ...shopData, ...parsed };
+            }
+        } catch (e2) { }
     }
+
     renderShopUI();
     updateCoinsDisplay();
 }
 
-// Save shop data to localStorage (User Specific)
+// Save shop data to localStorage AND Firebase (User Specific)
 function saveShopData() {
     if (!currentPlayerName) return;
 
@@ -757,6 +780,13 @@ function saveShopData() {
         const playerId = getPlayerId(currentPlayerName);
         const userKey = `${SHOP_DATA_KEY}_${playerId}`;
         localStorage.setItem(userKey, JSON.stringify(shopData));
+
+        // Also save to Firebase for cross-device sync
+        fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(shopData)
+        }).catch(e => console.log('Could not sync to Firebase:', e));
     } catch (e) {
         console.log('Could not save shop data:', e);
     }
