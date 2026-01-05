@@ -693,8 +693,7 @@ let shopData = {
     equippedSkin: 'default'
 };
 
-// Load shop data from Firebase AND localStorage (User Specific)
-// Merges data intelligently - uses highest fly count and combines owned skins
+// Load shop data - Firebase is the source of truth
 async function loadShopData() {
     // Default state
     shopData = {
@@ -710,82 +709,55 @@ async function loadShopData() {
     }
 
     const playerId = getPlayerId(currentPlayerName);
-    let firebaseData = null;
-    let localData = null;
 
-    // Load from Firebase
+    // Try to load from Firebase (source of truth)
     try {
         const response = await fetch(`${FIREBASE_DB_URL}/userData/${playerId}/shop.json`);
         const data = await response.json();
+
         if (data && data.totalFlies !== undefined) {
-            firebaseData = data;
+            // Firebase has data - use it
+            shopData.totalFlies = data.totalFlies;
+            shopData.ownedSkins = data.ownedSkins || ['default'];
+            shopData.equippedSkin = data.equippedSkin || 'default';
+
+            // Update localStorage cache
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            localStorage.setItem(userKey, JSON.stringify(shopData));
+        } else {
+            // No Firebase data - check for existing localStorage to migrate
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            const localSaved = localStorage.getItem(userKey);
+
+            if (localSaved) {
+                const parsed = JSON.parse(localSaved);
+                shopData = { ...shopData, ...parsed };
+                // Push to Firebase
+                await saveShopData();
+                showCheatNotification(`☁️ Data synkronoitu pilveen!`);
+            } else {
+                // Check for legacy data
+                const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
+                if (globalSaved) {
+                    const parsed = JSON.parse(globalSaved);
+                    shopData = { ...shopData, ...parsed };
+                    await saveShopData();
+                    showCheatNotification(`🎉 Vanha data siirretty! ${shopData.totalFlies} kärpästä!`);
+                }
+            }
         }
     } catch (e) {
-        console.log('Could not load from Firebase:', e);
-    }
-
-    // Load from localStorage
-    try {
-        const userKey = `${SHOP_DATA_KEY}_${playerId}`;
-        const userSaved = localStorage.getItem(userKey);
-        if (userSaved) {
-            localData = JSON.parse(userSaved);
-        }
-    } catch (e) { }
-
-    // Merge data intelligently
-    // Priority: source with MORE owned skins wins (purchases made)
-    // If same skins, use higher fly count
-    if (firebaseData || localData) {
-        const fbFlies = firebaseData?.totalFlies || 0;
-        const localFlies = localData?.totalFlies || 0;
-        const fbSkins = firebaseData?.ownedSkins || ['default'];
-        const localSkins = localData?.ownedSkins || ['default'];
-
-        // Determine which source is more authoritative
-        // More skins = more purchases made = more recent/complete data
-        let useFirebase = false;
-        if (fbSkins.length > localSkins.length) {
-            useFirebase = true;
-        } else if (fbSkins.length < localSkins.length) {
-            useFirebase = false;
-        } else {
-            // Same number of skins - use higher fly count
-            useFirebase = fbFlies >= localFlies;
-        }
-
-        if (useFirebase && firebaseData) {
-            shopData.totalFlies = fbFlies;
-            shopData.ownedSkins = fbSkins;
-            shopData.equippedSkin = firebaseData.equippedSkin || 'default';
-        } else if (localData) {
-            shopData.totalFlies = localFlies;
-            shopData.ownedSkins = localSkins;
-            shopData.equippedSkin = localData.equippedSkin || 'default';
-        }
-
-        // Sync to ensure both sources are consistent
-        const needsSync = fbFlies !== localFlies || fbSkins.length !== localSkins.length;
-        if (needsSync) {
-            console.log(`Syncing: Firebase(${fbFlies} flies, ${fbSkins.length} skins) vs Local(${localFlies} flies, ${localSkins.length} skins) -> Using ${useFirebase ? 'Firebase' : 'Local'}`);
-            saveShopData();
-        }
-    } else {
-        // No data found - check for legacy migration
-        const globalSaved = localStorage.getItem(SHOP_DATA_KEY);
-        if (globalSaved) {
-            try {
-                const parsed = JSON.parse(globalSaved);
+        console.log('Firebase error, using localStorage:', e);
+        // Offline fallback - use localStorage
+        try {
+            const userKey = `${SHOP_DATA_KEY}_${playerId}`;
+            const localSaved = localStorage.getItem(userKey);
+            if (localSaved) {
+                const parsed = JSON.parse(localSaved);
                 shopData = { ...shopData, ...parsed };
-                saveShopData();
-                showCheatNotification(`🎉 Vanha data siirretty! ${shopData.totalFlies} kärpästä!`);
-            } catch (e) { }
-        }
+            }
+        } catch (e2) { }
     }
-
-    // Save to localStorage for offline access
-    const userKey = `${SHOP_DATA_KEY}_${playerId}`;
-    localStorage.setItem(userKey, JSON.stringify(shopData));
 
     renderShopUI();
     updateCoinsDisplay();
