@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lisko Racing 🦎</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div id="score">🪰 Kärpäset: <span id="score-value">0</span></div>
+            <div id="speed">⚡ Nopeus: <span id="speed-value">1.0</span>x</div>
+        </div>
+
+        <!-- Pause Button (top right) -->
+        <button id="pause-btn">⏸️</button>
+
+        <!-- Pause Screen -->
+        <div id="pause-screen" class="overlay hidden">
+            <div class="overlay-content pause-content">
+                <h1>⏸️ TAUKO</h1>
+                <p id="pause-score"></p>
+                <button id="resume-btn" class="pause-menu-btn">▶️ Jatka</button>
+                <button id="quit-btn" class="pause-menu-btn quit">🚪 Lopeta</button>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <div class="overlay-content">
+                <div id="language-selector">
+                    <button class="lang-btn selected" data-lang="fi">🇫🇮 Suomi</button>
+                    <button class="lang-btn" data-lang="sv">🇸🇪 Svenska</button>
+                    <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+                </div>
+                <h1>🦎 LISKO RACING</h1>
+                <p class="games-counter-display">🎮 Pelejä pelattu: <span id="games-counter">0</span></p>
+                <p>Väistele esteitä ja kerää kärpäsiä!</p>
+                <p class="controls">Ohjaus: ← → tai A D</p>
+                <p class="controls mobile-hint">📱 Pyyhkäise tai käytä nappeja</p>
+
+                <div id="auth-section">
+                    <!-- Login Form -->
+                    <div id="login-form">
+                        <h2 id="auth-title">Kirjaudu sisään</h2>
+                        <input type="text" id="auth-username" placeholder="Käyttäjätunnus" maxlength="15">
+                        <input type="password" id="auth-password" placeholder="Salasana">
+                        <div class="auth-buttons">
+                            <button type="button" id="login-btn" onclick="handleLogin()">Kirjaudu</button>
+                            <button type="button" id="register-btn" onclick="handleRegister()" class="secondary-btn">Luo
+                                tili</button>
+                        </div>
+                    </div>
+
+                    <!-- Logged In State -->
+                    <div id="logged-in-state" class="hidden">
+                        <p><span id="logged-in-label">Kirjautuneena:</span> <strong id="current-username"></strong></p>
+                        <div class="auth-buttons-row">
+                            <button type="button" id="sync-btn" onclick="syncToCloud()" class="secondary-btn small">☁️
+                                Synkronoi</button>
+                            <button type="button" id="logout-btn" onclick="logoutUser()"
+                                class="secondary-btn small">Kirjaudu ulos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="difficulty-selection">
+                    <p>Valitse vaikeustaso:</p>
+                    <div class="difficulty-buttons">
+                        <button class="diff-btn" data-diff="easy">Helppo 🟢</button>
+                        <button class="diff-btn selected" data-diff="normal">Normaali 🟡</button>
+                        <button class="diff-btn" data-diff="hard">Vaikea 🔴</button>
+                        <button class="diff-btn" data-diff="super">SUPER 🔥</button>
+                    </div>
+                </div>
+
+                <button id="start-btn">ALOITA PELI</button>
+
+                <div id="shop-section">
+                    <!-- Shop UI will be rendered here by JavaScript -->
+                </div>
+
+                <div id="leaderboard-section">
+                    <h2>🏆 TOP 1000</h2>
+                    <div id="leaderboard-list">
+                        <p class="loading">Ladataan...</p>
+                    </div>
+                </div>
+
+                <div id="friends-section">
+                    <!-- Friends UI will be rendered here by JavaScript -->
+                </div>
+
+                <div id="requests-section">
+                    <!-- Feature requests UI will be rendered here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobile-controls">
+            <button id="mobile-left-btn" class="mobile-btn">◀</button>
+            <button id="mobile-right-btn" class="mobile-btn">▶</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="overlay hidden">
+            <div class="overlay-content">
+                <h1>💥 PELI PÄÄTTYI!</h1>
+                <p>Keräsit <span id="final-score">0</span> kärpästä!</p>
+                <p id="rank-message"></p>
+                <div id="game-over-leaderboard">
+                    <h3>🏆 TOP 10</h3>
+                    <div id="game-over-leaderboard-list"></div>
+                </div>
+                <button id="restart-btn">PELAA UUDELLEEN</button>
+                <button id="menu-btn" class="secondary-btn">🏠 VALIKKO</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
